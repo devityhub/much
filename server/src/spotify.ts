@@ -5,7 +5,7 @@ import { currentUser, requireAuth } from './auth';
 import { queries } from './db';
 import { asyncHandler, HttpError } from './http';
 import { music } from './music';
-import { authorizeUrl, linkAccount, searchTracks, spotifyFetch } from './spotifyApi';
+import { authorizeUrl, linkAccount, searchTracks, spotifyFetch, verifySpotifyAppCredentials } from './spotifyApi';
 import {
   canConfigureSpotify,
   clearSpotifyCredentials,
@@ -100,7 +100,12 @@ spotifyRouter.get(
       spotifyPresence.watch(row.user_id);
       res.send(callbackPage(true, 'Pode fechar esta janela e voltar ao Much.'));
     } catch (err) {
-      res.status(400).send(callbackPage(false, (err as Error).message));
+      const message = (err as Error).message;
+      // Secret errado: limpa as chaves para o modal de liberar abrir de novo.
+      if ((err as { code?: string }).code === 'invalid_client' || /client secret|invalid_client|secret inválido/i.test(message)) {
+        if (!spotifyFromEnv()) clearSpotifyCredentials();
+      }
+      res.status(400).send(callbackPage(false, message));
     }
   }),
 );
@@ -152,19 +157,24 @@ spotifyRouter.patch('/me', (req, res) => {
   });
 });
 
-spotifyRouter.put('/config', (req, res) => {
-  requireConfigurator(res);
-  const { clientId, clientSecret } = configSchema.parse(req.body);
-  if (clientId === clientSecret) {
-    throw new HttpError(
-      400,
-      'O Client Secret está igual ao Client ID. No Spotify, clique em “Ver segredo do cliente” e cole o secret correto.',
-    );
-  }
-  saveSpotifyCredentials(clientId, clientSecret);
-  spotifyPresence.unwatchAll();
-  res.json({ ok: true });
-});
+spotifyRouter.put(
+  '/config',
+  asyncHandler(async (req, res) => {
+    requireConfigurator(res);
+    const { clientId, clientSecret } = configSchema.parse(req.body);
+    if (clientId === clientSecret) {
+      throw new HttpError(
+        400,
+        'O Client Secret está igual ao Client ID. No Spotify, clique em “Ver segredo do cliente” e cole o secret correto.',
+      );
+    }
+    // Valida com o Spotify antes de gravar — evita OAuth que falha com “Invalid client secret”.
+    await verifySpotifyAppCredentials(clientId, clientSecret);
+    saveSpotifyCredentials(clientId, clientSecret);
+    spotifyPresence.unwatchAll();
+    res.json({ ok: true });
+  }),
+);
 
 spotifyRouter.delete('/config', (_req, res) => {
   requireConfigurator(res);

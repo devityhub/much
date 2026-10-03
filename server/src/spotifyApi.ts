@@ -34,35 +34,50 @@ interface TokenResponse {
   error_description?: string;
 }
 
-function basicAuth() {
-  const { clientId, clientSecret } = spotifyCredentials();
+function basicAuthHeader(clientId: string, clientSecret: string) {
   return 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 }
 
-async function tokenRequest(params: Record<string, string>): Promise<TokenResponse> {
+function basicAuth() {
+  const { clientId, clientSecret } = spotifyCredentials();
+  return basicAuthHeader(clientId, clientSecret);
+}
+
+function mapTokenError(data: TokenResponse): HttpError {
+  const raw = (data.error_description || data.error || '').toLowerCase();
+  let message = data.error_description || 'O Spotify recusou a conexão';
+  if (raw.includes('invalid client') || raw.includes('invalid_client') || raw.includes('secret')) {
+    message =
+      'Client Secret inválido. No painel do Spotify clique em “Ver segredo do cliente”, copie o secret (não o Client ID) e cole de novo no Much.';
+  }
+  const err = new HttpError(400, message);
+  (err as HttpError & { code?: string }).code = data.error || 'invalid_client';
+  return err;
+}
+
+async function tokenRequest(params: Record<string, string>, auth?: { clientId: string; clientSecret: string }): Promise<TokenResponse> {
+  const authorization = auth ? basicAuthHeader(auth.clientId, auth.clientSecret) : basicAuth();
   let res: Response;
   try {
     res = await fetch(`${ACCOUNTS_URL}/api/token`, {
       method: 'POST',
-      headers: { Authorization: basicAuth(), 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: { Authorization: authorization, 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams(params),
     });
   } catch {
     throw new HttpError(502, 'Não foi possível falar com o Spotify agora');
   }
   const data = (await res.json().catch(() => ({}))) as TokenResponse;
-  if (!res.ok) {
-    const raw = (data.error_description || data.error || '').toLowerCase();
-    let message = data.error_description || 'O Spotify recusou a conexão';
-    if (raw.includes('invalid client') || raw.includes('invalid_client') || raw.includes('secret')) {
-      message =
-        'Client Secret inválido. No painel do Spotify clique em “Ver segredo do cliente”, copie o secret (não o Client ID) e cole de novo no Much.';
-    }
-    const err = new HttpError(res.status === 400 ? 400 : 502, message);
-    (err as HttpError & { code?: string }).code = data.error;
-    throw err;
-  }
+  if (!res.ok) throw mapTokenError(data);
   return data;
+}
+
+/**
+ * Confirma Client ID + Secret com o Spotify antes de gravar (grant client_credentials).
+ * Assim o erro aparece no modal, sem abrir o login e falhar depois.
+ */
+export async function verifySpotifyAppCredentials(clientId: string, clientSecret: string) {
+  await tokenRequest({ grant_type: 'client_credentials' }, { clientId, clientSecret });
 }
 
 export function authorizeUrl(state: string, redirectUri: string) {

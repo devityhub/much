@@ -56,8 +56,10 @@ function UnlockSpotify({
   const toast = useToast();
   const [clientId, setClientId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
+  const [showSecret, setShowSecret] = useState(false);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [formError, setFormError] = useState('');
 
   const copy = () => {
     void navigator.clipboard?.writeText(redirectUri).then(
@@ -70,17 +72,29 @@ function UnlockSpotify({
   };
 
   const save = async () => {
+    const id = clientId.trim();
+    const secret = clientSecret.trim();
+    setFormError('');
+    if (id === secret) {
+      setFormError(
+        'O Client Secret está igual ao Client ID. No Spotify abra o app → Settings → “Ver segredo do cliente” e cole o secret (é outro código).',
+      );
+      return;
+    }
     // Popup no mesmo clique — senão o navegador bloqueia o login do Spotify.
     const popup = window.open('about:blank', 'much-spotify', 'width=520,height=780,noopener=no');
     setBusy(true);
     try {
-      await saveSpotifyConfig(clientId.trim(), clientSecret.trim());
+      // O servidor valida ID+Secret com o Spotify antes de gravar.
+      await saveSpotifyConfig(id, secret);
       await connectSpotify(popup);
       toast('Spotify conectado!', 'success');
       onDone();
     } catch (err) {
       popup?.close();
-      toast((err as Error).message, 'error');
+      const message = (err as Error).message;
+      setFormError(message);
+      toast(message, 'error');
     } finally {
       setBusy(false);
     }
@@ -109,7 +123,7 @@ function UnlockSpotify({
           rel="noreferrer"
           className="mb-3 inline-flex items-center gap-1.5 text-sm font-semibold text-[#5865F2] hover:underline"
         >
-          <ExternalLink size={14} /> Criar app grátis no Spotify
+          <ExternalLink size={14} /> Abrir painel do Spotify Developer
         </a>
 
         <p className="mb-1 text-xs font-semibold tracking-wide text-muted uppercase">Redirect URI (cole no app)</p>
@@ -120,25 +134,51 @@ function UnlockSpotify({
           </Button>
         </div>
 
-        <div className="mb-4 grid gap-2">
-          <input
-            className="input font-mono text-sm"
-            placeholder="Client ID"
-            autoComplete="off"
-            spellCheck={false}
-            value={clientId}
-            onChange={(e) => setClientId(e.target.value)}
-          />
-          <input
-            className="input font-mono text-sm"
-            type="password"
-            placeholder="Client Secret"
-            autoComplete="new-password"
-            spellCheck={false}
-            value={clientSecret}
-            onChange={(e) => setClientSecret(e.target.value)}
-          />
+        <div className="mb-3 grid gap-3">
+          <label className="grid gap-1">
+            <span className="text-xs font-semibold tracking-wide text-muted uppercase">Client ID</span>
+            <input
+              className="input font-mono text-sm"
+              placeholder="Cole o Client ID"
+              autoComplete="off"
+              spellCheck={false}
+              value={clientId}
+              onChange={(e) => {
+                setClientId(e.target.value);
+                setFormError('');
+              }}
+            />
+          </label>
+          <label className="grid gap-1">
+            <span className="text-xs font-semibold tracking-wide text-muted uppercase">Client Secret</span>
+            <div className="flex gap-2">
+              <input
+                className="input font-mono text-sm"
+                type={showSecret ? 'text' : 'password'}
+                placeholder="Ver segredo do cliente → copiar"
+                autoComplete="new-password"
+                spellCheck={false}
+                value={clientSecret}
+                onChange={(e) => {
+                  setClientSecret(e.target.value);
+                  setFormError('');
+                }}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="shrink-0"
+                onClick={() => setShowSecret((v) => !v)}
+              >
+                {showSecret ? 'Ocultar' : 'Mostrar'}
+              </Button>
+            </div>
+            <span className="text-xs text-muted">É outro código — não é o Client ID. No app: Settings → Ver segredo do cliente.</span>
+          </label>
         </div>
+
+        {formError ? <p className="mb-3 text-sm text-[#f04452]">{formError}</p> : null}
 
         <Button
           disabled={busy || !clientId.trim() || !clientSecret.trim()}
