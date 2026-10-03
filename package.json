@@ -1,29 +1,19 @@
 {
   "name": "much",
-  "version": "0.1.0",
   "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "server",
+    "client"
+  ],
   "scripts": {
-    "dev": "next dev --turbopack --hostname 127.0.0.1 --port 43123",
-    "build": "next build --turbopack",
-    "start": "next start --hostname 127.0.0.1 --port 43123",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "clsx": "^2.1.1",
-    "lucide-react": "^1.51.0",
-    "next": "^15.5.27",
-    "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "dev": "concurrently -n server,client -c red,white \"npm run dev -w server\" \"npm run dev -w client\"",
+    "dev:https": "concurrently -n server,client -c red,white \"npm run dev -w server\" \"npm run dev:https -w client\"",
+    "build": "npm run build -w client && npm run build -w server",
+    "start": "npm run start -w server",
+    "typecheck": "npm run typecheck -w server && npm run typecheck -w client"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20.19.43",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "^15.5.27",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "concurrently": "^9.1.0"
   }
 }

@@ -1,0 +1,186 @@
+import crypto from 'node:crypto';
+import { Router, type Response } from 'express';
+import { z } from 'zod';
+import { currentUser, requireAuth } from './auth';
+import { queries } from './db';
+import { asyncHandler, HttpError } from './http';
+import { music } from './music';
+import { authorizeUrl, linkAccount, searchTracks, spotifyFetch } from './spotifyApi';
+import {
+  clearSpotifyCredentials,
+  isServerOwner,
+  redirectUriFor,
+  saveSpotifyCredentials,
+  spotifyConfigured,
+  spotifyFromEnv,
+} from './spotifyConfig';
+import { spotifyPresence } from './spotifyPresence';
+
+const STATE_TTL_MS = 10 * 60_000;
+const pendingStates = new Map<string, { userId: number; expires: number; redirectUri: string }>();
+
+const PLAYER_ACTIONS: Record<string, { method: 'PUT' | 'POST'; path: string }> = {
+  play: { method: 'PUT', path: '/me/player/play' },
+  pause: { method: 'PUT', path: '/me/player/pause' },
+  next: { method: 'POST', path: '/me/player/next' },
+  previous: { method: 'POST', path: '/me/player/previous' },
+};
+
+const playSchema = z.object({ uri: z.string().regex(/^spotify:track:[A-Za-z0-9]{22}$/, 'Música inválida') });
+const searchSchema = z.object({ q: z.string().trim().min(1, 'Digite o que procurar').max(100) });
+
+/** Client ID e Client Secret do painel do Spotify: 32 caracteres hexadecimais. */
+const key = (label: string) =>
+  z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9]{20,64}$/, `${label} parece inválido: copie do painel do Spotify`);
+const configSchema = z.object({ clientId: key('O Client ID'), clientSecret: key('O Client Secret') });
+
+function requireConfigured() {
+  if (!spotifyConfigured()) throw new HttpError(503, 'O Spotify não está configurado neste servidor');
+}
+
+/** Mexer nas chaves muda o Spotify de todo mundo na instância, então fica só com o dono. */
+function requireOwner(res: Response) {
+  const me = currentUser(res);
+  if (!isServerOwner(me.id)) throw new HttpError(403, 'Só o dono do servidor pode configurar o Spotify');
+  if (spotifyFromEnv()) throw new HttpError(409, 'As chaves do Spotify vêm do .env deste servidor');
+  return me;
+}
+
+/** Comandos de player só para quem está tocando música em alguma sala agora. */
+function requireDj(res: Response) {
+  const me = currentUser(res);
+  const roomId = music.roomOfDj(me.id);
+  if (!roomId) throw new HttpError(403, 'Só quem está tocando a música pode controlar');
+  return { me, roomId };
+}
+
+function callbackPage(ok: boolean, message: string) {
+  const color = ok ? '#1db954' : '#f04452';
+  const safe = message.replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c]!);
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Much + Spotify</title></head>
+<body style="margin:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#0c0d11;color:#fff;font-family:Segoe UI,Arial,sans-serif;text-align:center">
+<div style="font-size:22px;font-weight:700;color:${color}">${ok ? 'Spotify conectado!' : 'Não deu para conectar'}</div>
+<div style="color:#9097a6;max-width:420px">${safe}</div>
+<script>
+try { window.opener && window.opener.postMessage({ type: 'much:spotify', ok: ${ok} }, '*'); } catch (e) {}
+setTimeout(function () { window.close(); }, ${ok ? 1200 : 4000});
+</script>
+</body></html>`;
+}
+
+export const spotifyRouter = Router();
+
+spotifyRouter.get(
+  '/callback',
+  asyncHandler(async (req, res) => {
+    res.setHeader('Content-Security-Policy', "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'");
+    const state = typeof req.query.state === 'string' ? req.query.state : '';
+    const code = typeof req.query.code === 'string' ? req.query.code : '';
+    const pending = pendingStates.get(state);
+    pendingStates.delete(state);
+    if (!pending || pending.expires < Date.now()) {
+      res.status(400).send(callbackPage(false, 'O link de conexão expirou. Volte ao Much e tente de novo.'));
+      return;
+    }
+    if (req.query.error || !code) {
+      res.send(callbackPage(false, 'Você cancelou a conexão com o Spotify.'));
+      return;
+    }
+    try {
+      await linkAccount(pending.userId, code, pending.redirectUri);
+      // Já começa a acompanhar: a atividade aparece no perfil sem precisar recarregar nada.
+      spotifyPresence.watch(pending.userId);
+      res.send(callbackPage(true, 'Pode fechar esta janela e voltar ao Much.'));
+    } catch (err) {
+      res.status(400).send(callbackPage(false, (err as Error).message));
+    }
+  }),
+);
+
+spotifyRouter.use(requireAuth);
+
+spotifyRouter.get('/me', (req, res) => {
+  const me = currentUser(res);
+  const account = queries.spotifyAccount.get(me.id);
+  res.json({
+    configured: spotifyConfigured(),
+    linked: Boolean(account),
+    name: account?.display_name ?? null,
+    premium: account?.product === 'premium',
+    // Para o dono montar o app no painel do Spotify sem sair do Much.
+    canConfigure: isServerOwner(me.id) && !spotifyFromEnv(),
+    fromEnv: spotifyFromEnv(),
+    redirectUri: redirectUriFor(req),
+  });
+});
+
+spotifyRouter.put('/config', (req, res) => {
+  requireOwner(res);
+  const { clientId, clientSecret } = configSchema.parse(req.body);
+  saveSpotifyCredentials(clientId, clientSecret);
+  spotifyPresence.unwatchAll();
+  res.json({ ok: true });
+});
+
+spotifyRouter.delete('/config', (_req, res) => {
+  requireOwner(res);
+  clearSpotifyCredentials();
+  spotifyPresence.unwatchAll();
+  res.status(204).end();
+});
+
+spotifyRouter.post('/authorize', (req, res) => {
+  requireConfigured();
+  const me = currentUser(res);
+  const now = Date.now();
+  for (const [key, value] of pendingStates) if (value.expires < now) pendingStates.delete(key);
+  const state = crypto.randomBytes(24).toString('hex');
+  const redirectUri = redirectUriFor(req);
+  pendingStates.set(state, { userId: me.id, expires: now + STATE_TTL_MS, redirectUri });
+  res.json({ url: authorizeUrl(state, redirectUri) });
+});
+
+spotifyRouter.delete('/', (_req, res) => {
+  const me = currentUser(res);
+  queries.deleteSpotifyAccount.run(me.id);
+  spotifyPresence.unwatch(me.id);
+  res.status(204).end();
+});
+
+spotifyRouter.post(
+  '/player/:action',
+  asyncHandler(async (req, res) => {
+    requireConfigured();
+    const action = PLAYER_ACTIONS[req.params.action];
+    if (!action) throw new HttpError(404, 'Comando inválido');
+    const { me, roomId } = requireDj(res);
+    await spotifyFetch(me.id, action.path, { method: action.method });
+    music.refreshSoon(roomId);
+    res.json({ ok: true });
+  }),
+);
+
+spotifyRouter.get(
+  '/search',
+  asyncHandler(async (req, res) => {
+    requireConfigured();
+    const { me } = requireDj(res);
+    const { q } = searchSchema.parse(req.query);
+    res.json({ tracks: await searchTracks(me.id, q) });
+  }),
+);
+
+spotifyRouter.post(
+  '/play',
+  asyncHandler(async (req, res) => {
+    requireConfigured();
+    const { me, roomId } = requireDj(res);
+    const { uri } = playSchema.parse(req.body);
+    await spotifyFetch(me.id, '/me/player/play', { method: 'PUT', body: { uris: [uri] } });
+    music.refreshSoon(roomId);
+    res.json({ ok: true });
+  }),
+);

@@ -1,0 +1,48 @@
+{
+  "name": "much-desktop",
+  "productName": "Much",
+  "private": true,
+  "version": "1.0.0",
+  "description": "App desktop do Much: transmite a tela com o audio do PC inteiro, menos o Discord.",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "npm run build && electron .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dist": "npm run build && electron-builder --win --x64"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.6.3"
+  },
+  "build": {
+    "appId": "com.much.desktop",
+    "productName": "Much",
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../native/audio-capture/build/Release/audio-capture.exe",
+        "to": "audio-capture.exe"
+      },
+      {
+        "from": "config.json",
+        "to": "config.json"
+      }
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
