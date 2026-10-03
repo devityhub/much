@@ -187,6 +187,13 @@ db.exec(`
     PRIMARY KEY (user_id, other_id)
   );
   CREATE INDEX IF NOT EXISTS dm_request_states_user_status ON dm_request_states (user_id, status);
+
+  CREATE TABLE IF NOT EXISTS spotify_oauth_states (
+    state TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    redirect_uri TEXT NOT NULL,
+    expires_at INTEGER NOT NULL
+  );
 `);
 
 export const AVATARS = ['red', 'blue', 'yellow', 'green', 'purple', 'pink', 'orange', 'teal'] as const;
@@ -409,6 +416,15 @@ export const queries = {
   deleteSetting: db.prepare<[string]>('DELETE FROM app_settings WHERE key = ?'),
   /** A primeira conta criada é a dona do servidor: é quem pode mexer nas chaves do Spotify. */
   firstUserId: db.prepare<[], { id: number }>('SELECT id FROM users ORDER BY id LIMIT 1'),
+
+  putSpotifyOAuthState: db.prepare<[string, number, string, number]>(
+    'INSERT OR REPLACE INTO spotify_oauth_states (state, user_id, redirect_uri, expires_at) VALUES (?, ?, ?, ?)',
+  ),
+  takeSpotifyOAuthState: db.prepare<[string], { user_id: number; redirect_uri: string; expires_at: number }>(
+    'SELECT user_id, redirect_uri, expires_at FROM spotify_oauth_states WHERE state = ?',
+  ),
+  deleteSpotifyOAuthState: db.prepare<[string]>('DELETE FROM spotify_oauth_states WHERE state = ?'),
+  purgeSpotifyOAuthStates: db.prepare<[number]>('DELETE FROM spotify_oauth_states WHERE expires_at < ?'),
 
   stickersOf: db.prepare<[number], StickerRow>('SELECT * FROM stickers WHERE user_id = ? ORDER BY id DESC'),
   countStickers: db.prepare<[number], { count: number }>('SELECT COUNT(*) AS count FROM stickers WHERE user_id = ?'),

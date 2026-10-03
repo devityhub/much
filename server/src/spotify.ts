@@ -16,8 +16,7 @@ import {
 } from './spotifyConfig';
 import { spotifyPresence } from './spotifyPresence';
 
-const STATE_TTL_MS = 10 * 60_000;
-const pendingStates = new Map<string, { userId: number; expires: number; redirectUri: string }>();
+const STATE_TTL_MS = 30 * 60_000;
 
 const PLAYER_ACTIONS: Record<string, { method: 'PUT' | 'POST'; path: string }> = {
   play: { method: 'PUT', path: '/me/player/play' },
@@ -84,10 +83,11 @@ spotifyRouter.get(
     res.setHeader('Content-Security-Policy', "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'");
     const state = typeof req.query.state === 'string' ? req.query.state : '';
     const code = typeof req.query.code === 'string' ? req.query.code : '';
-    const pending = pendingStates.get(state);
-    pendingStates.delete(state);
-    if (!pending || pending.expires < Date.now()) {
-      res.status(400).send(callbackPage(false, 'O link de conexão expirou. Volte ao Much e tente de novo.'));
+    queries.purgeSpotifyOAuthStates.run(Date.now());
+    const row = state ? queries.takeSpotifyOAuthState.get(state) : undefined;
+    if (row) queries.deleteSpotifyOAuthState.run(state);
+    if (!row || row.expires_at < Date.now()) {
+      res.status(400).send(callbackPage(false, 'O link de conexão expirou. Volte ao Much e clique em Conectar de novo.'));
       return;
     }
     if (req.query.error || !code) {
@@ -95,9 +95,9 @@ spotifyRouter.get(
       return;
     }
     try {
-      await linkAccount(pending.userId, code, pending.redirectUri);
+      await linkAccount(row.user_id, code, row.redirect_uri);
       // Já começa a acompanhar: a atividade aparece no perfil sem precisar recarregar nada.
-      spotifyPresence.watch(pending.userId);
+      spotifyPresence.watch(row.user_id);
       res.send(callbackPage(true, 'Pode fechar esta janela e voltar ao Much.'));
     } catch (err) {
       res.status(400).send(callbackPage(false, (err as Error).message));
@@ -155,6 +155,12 @@ spotifyRouter.patch('/me', (req, res) => {
 spotifyRouter.put('/config', (req, res) => {
   requireConfigurator(res);
   const { clientId, clientSecret } = configSchema.parse(req.body);
+  if (clientId === clientSecret) {
+    throw new HttpError(
+      400,
+      'O Client Secret está igual ao Client ID. No Spotify, clique em “Ver segredo do cliente” e cole o secret correto.',
+    );
+  }
   saveSpotifyCredentials(clientId, clientSecret);
   spotifyPresence.unwatchAll();
   res.json({ ok: true });
@@ -171,10 +177,11 @@ spotifyRouter.post('/authorize', (req, res) => {
   requireConfigured();
   const me = currentUser(res);
   const now = Date.now();
-  for (const [key, value] of pendingStates) if (value.expires < now) pendingStates.delete(key);
+  queries.purgeSpotifyOAuthStates.run(now);
   const state = crypto.randomBytes(24).toString('hex');
   const redirectUri = redirectUriFor(req);
-  pendingStates.set(state, { userId: me.id, expires: now + STATE_TTL_MS, redirectUri });
+  // Persistido no SQLite: restart do servidor no meio do login não “expira” o link.
+  queries.putSpotifyOAuthState.run(state, me.id, redirectUri, now + STATE_TTL_MS);
   res.json({ url: authorizeUrl(state, redirectUri) });
 });
 
