@@ -30,14 +30,16 @@ if (isProduction && !process.env.JWT_SECRET) {
 }
 
 const corsOrigins = list(process.env.CORS_ORIGIN);
-const dbPath = path.resolve(process.env.DB_PATH ?? path.join(process.cwd(), 'data', 'streamflix.db'));
+// Sempre relativo ao pacote server/ (não ao cwd). Assim restart/túnel não troca de banco e some com as contas.
+const serverRoot = path.resolve(__dirname, '..');
+const dbPath = path.resolve(process.env.DB_PATH ?? path.join(serverRoot, 'data', 'streamflix.db'));
 
 export const config = {
   port: Number(process.env.PORT ?? 3001),
   jwtSecret: process.env.JWT_SECRET ?? 'dev-secret-change-me',
   dbPath,
   uploadsDir: path.resolve(process.env.UPLOADS_DIR ?? path.join(path.dirname(dbPath), 'uploads')),
-  clientDist: path.resolve(__dirname, '..', '..', 'client', 'dist'),
+  clientDist: path.resolve(serverRoot, '..', 'client', 'dist'),
   corsOrigin: corsOrigins.length ? corsOrigins : true,
   maxPeersPerRoom: Number(process.env.MAX_PEERS_PER_ROOM ?? 6),
   iceServers: buildIceServers(),

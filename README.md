@@ -102,7 +102,7 @@ O app desktop aceita um servidor `http://` na rede local, porque libera essa ori
 | --- | --- | --- |
 | `PORT` | `3001` | Porta HTTP/HTTPS |
 | `JWT_SECRET` | `dev-secret-change-me` | Segredo dos tokens de login (obrigatório com `NODE_ENV=production`) |
-| `DB_PATH` | `./data/streamflix.db` | Arquivo SQLite (nome mantido para não perder contas já criadas) |
+| `DB_PATH` | `server/data/streamflix.db` | SQLite das contas. Caminho fixo relativo ao pacote `server/` (não depende do diretório de onde o processo sobe), para restart não “sumir” com as contas |
 | `CORS_ORIGIN` | qualquer | Origens permitidas, separadas por vírgula |
 | `MAX_PEERS_PER_ROOM` | `6` | Limite de pessoas por sala pública (chamadas privadas são sempre de 2) |
 | `STUN_URLS` | STUN do Google | Servidores STUN |
