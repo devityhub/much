@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { motion } from 'motion/react';
-import { Camera, Check, ImagePlus, Trash2 } from 'lucide-react';
+import { Camera, ImagePlus, Trash2 } from 'lucide-react';
 import Modal from './Modal';
 import RoomIcon from './RoomIcon';
 import Spinner from './Spinner';
@@ -9,7 +8,7 @@ import { Button, Toggle } from './ui';
 import { useCall } from '../context/call';
 import { useRooms } from '../context/rooms';
 import { useToast } from '../context/toast';
-import { COVERS, coverBackground } from '../lib/theme';
+import { coverBackground } from '../lib/theme';
 import type { Room } from '../lib/types';
 
 /** Cria uma sala nova ou, com `room`, edita uma sala existente (só o dono). */
@@ -19,15 +18,15 @@ export default function CreateRoomModal({ room, onClose }: { room?: Room | null;
   const toast = useToast();
   const editing = Boolean(room);
   const [name, setName] = useState(room?.name ?? '');
-  const [cover, setCover] = useState(room?.cover ?? 'cover-1');
+  const cover = room?.cover ?? 'cover-1';
   const [coverImage, setCoverImage] = useState<string | null>(room?.coverImage ?? null);
   const [iconImage, setIconImage] = useState<string | null>(room?.iconImage ?? null);
   const [description, setDescription] = useState(room?.description ?? '');
   const [promoted, setPromoted] = useState(room?.promoted ?? false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const coverPicker = useImagePicker(ROOM_COVER_CROP, setCoverImage);
-  const iconPicker = useImagePicker(ROOM_ICON_CROP, setIconImage);
+  const coverPicker = useImagePicker(ROOM_COVER_CROP, (url) => setCoverImage(url || null));
+  const iconPicker = useImagePicker(ROOM_ICON_CROP, (url) => setIconImage(url || null));
   const uploading = coverPicker.uploading || iconPicker.uploading;
 
   const submit = async (e: FormEvent) => {
@@ -59,10 +58,7 @@ export default function CreateRoomModal({ room, onClose }: { room?: Room | null;
     >
       <form onSubmit={submit} className="space-y-5">
         <DropZone onFile={coverPicker.handleFile} className="rounded-xl">
-          <motion.div
-            key={coverImage ?? cover}
-            initial={{ opacity: 0.6, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
+          <div
             role="button"
             tabIndex={0}
             onClick={coverPicker.open}
@@ -98,11 +94,11 @@ export default function CreateRoomModal({ room, onClose }: { room?: Room | null;
               <span className="font-display text-2xl font-semibold drop-shadow">{name || 'nome-da-sala'}</span>
             </div>
             {coverPicker.uploading && (
-              <span className="absolute inset-0 flex items-center justify-center bg-black/60">
+              <span className="absolute inset-0 flex items-center justify-center bg-black/40">
                 <Spinner />
               </span>
             )}
-          </motion.div>
+          </div>
         </DropZone>
         {coverPicker.element}
         {iconPicker.element}
@@ -135,7 +131,7 @@ export default function CreateRoomModal({ room, onClose }: { room?: Room | null;
             </div>
           </div>
         </div>
-        <p className="-mt-2 text-xs text-faint">PNG, JPG, WEBP ou GIF animado (até 6 MB). Também dá para arrastar a imagem até a capa.</p>
+        <p className="-mt-2 text-xs text-faint">PNG, JPG ou WEBP leve (até 2 MB). Arraste a imagem até a capa para enviar mais rápido.</p>
 
         <div>
           <label className="mb-1.5 block text-xs font-bold tracking-wider text-muted uppercase">Nome da sala</label>
@@ -163,29 +159,6 @@ export default function CreateRoomModal({ room, onClose }: { room?: Room | null;
             label="Divulgar no meu perfil"
             hint="Quem abrir seu perfil vê a sala com banner, ícone e descrição, e entra com um clique. Só uma sala por vez."
           />
-        </div>
-
-        <div>
-          <div className="mb-1.5 text-xs font-bold tracking-wider text-muted uppercase">Cor {coverImage && <span className="font-medium tracking-normal normal-case text-faint">(remove a capa)</span>}</div>
-          <div className="grid grid-cols-8 gap-2">
-            {Object.entries(COVERS).map(([key, gradient]) => (
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                type="button"
-                key={key}
-                onClick={() => {
-                  setCover(key);
-                  setCoverImage(null);
-                }}
-                className="flex aspect-square items-center justify-center rounded-lg"
-                style={{ background: gradient }}
-                aria-label={key}
-              >
-                {!coverImage && cover === key && <Check size={16} className="drop-shadow" />}
-              </motion.button>
-            ))}
-          </div>
         </div>
 
         {error && <p className="text-sm text-danger">{error}</p>}

@@ -58,7 +58,8 @@ function ImageCropModal({ file, spec, onCancel, onApply }: { file: File; spec: C
     const left = (frameW - dispW) / 2 + offset.x;
     const top = (frameH - dispH) / 2 + offset.y;
     ctx.drawImage(img.current, left * scale, top * scale, dispW * scale, dispH * scale);
-    canvas.toBlob((blob) => blob && onApply(blob), 'image/webp', 0.9);
+    // WebP leve: upload rápido e preview quase imediato.
+    canvas.toBlob((blob) => blob && onApply(blob), 'image/webp', 0.72);
   };
 
   // Captura antes dos outros modais para o Esc fechar só o recorte.
@@ -179,12 +180,18 @@ export function useImagePicker(spec: CropSpec, onUploaded: (url: string) => void
   const upload = useCallback(
     async (blob: Blob) => {
       setUploading(true);
+      // Mostra a imagem na hora; troca pela URL do servidor quando o upload terminar.
+      const preview = URL.createObjectURL(blob);
+      callback.current(preview);
       try {
-        callback.current(await uploadImage(blob));
+        const url = await uploadImage(blob);
+        callback.current(url);
         if (blob.type === 'image/gif') toast('GIF enviado inteiro para continuar animado', 'success');
       } catch (err) {
+        callback.current('');
         toast((err as Error).message, 'error');
       } finally {
+        URL.revokeObjectURL(preview);
         setUploading(false);
       }
     },
@@ -269,8 +276,8 @@ export function DropZone({ onFile, children, className = '' }: { onFile: (file: 
   );
 }
 
-export const AVATAR_CROP: CropSpec = { title: 'Ajustar foto de perfil', aspect: 1, shape: 'circle', width: 512, height: 512 };
-export const BANNER_CROP: CropSpec = { title: 'Ajustar banner', aspect: 3, shape: 'rect', width: 1200, height: 400 };
-export const ROOM_COVER_CROP: CropSpec = { title: 'Ajustar capa da sala', aspect: 21 / 9, shape: 'rect', width: 1260, height: 540 };
-export const ROOM_ICON_CROP: CropSpec = { title: 'Ajustar ícone da sala', aspect: 1, shape: 'rect', width: 256, height: 256 };
-export const GROUP_ICON_CROP: CropSpec = { title: 'Ajustar ícone do grupo', aspect: 1, shape: 'circle', width: 256, height: 256 };
+export const AVATAR_CROP: CropSpec = { title: 'Ajustar foto de perfil', aspect: 1, shape: 'circle', width: 256, height: 256 };
+export const BANNER_CROP: CropSpec = { title: 'Ajustar banner', aspect: 3, shape: 'rect', width: 960, height: 320 };
+export const ROOM_COVER_CROP: CropSpec = { title: 'Ajustar capa da sala', aspect: 21 / 9, shape: 'rect', width: 840, height: 360 };
+export const ROOM_ICON_CROP: CropSpec = { title: 'Ajustar ícone da sala', aspect: 1, shape: 'rect', width: 128, height: 128 };
+export const GROUP_ICON_CROP: CropSpec = { title: 'Ajustar ícone do grupo', aspect: 1, shape: 'circle', width: 128, height: 128 };

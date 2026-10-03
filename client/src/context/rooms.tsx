@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { api } from '../lib/api';
 import { getSocket } from '../lib/socket';
 import type { Room, RoomPatch } from '../lib/types';
@@ -17,59 +17,77 @@ const RoomsContext = createContext<RoomsContextValue | null>(null);
 export function RoomsProvider({ children }: { children: ReactNode }) {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
+  const generation = useRef(0);
+  const timer = useRef<number | null>(null);
 
-  const reload = useCallback(async () => {
+  const reloadNow = useCallback(async () => {
+    const gen = ++generation.current;
     try {
-      const { rooms } = await api<{ rooms: Room[] }>('/rooms');
-      setRooms(rooms);
+      const { rooms: next } = await api<{ rooms: Room[] }>('/rooms');
+      // Resposta velha de um reload anterior não apaga a lista atual.
+      if (gen !== generation.current) return;
+      setRooms(next);
     } catch {
       // mantém a lista anterior; o socket avisa quando mudar de novo
     } finally {
-      setLoading(false);
+      if (gen === generation.current) setLoading(false);
     }
   }, []);
 
+  /** Agrupa rajadas de rooms:changed (entrar/sair/mídia) num único GET. */
+  const reload = useCallback(async () => {
+    if (timer.current != null) window.clearTimeout(timer.current);
+    await new Promise<void>((resolve) => {
+      timer.current = window.setTimeout(() => {
+        timer.current = null;
+        void reloadNow().finally(resolve);
+      }, 80);
+    });
+  }, [reloadNow]);
+
   useEffect(() => {
     const socket = getSocket();
-    void reload();
+    void reloadNow();
     const onChange = () => void reload();
     socket.on('rooms:changed', onChange);
     socket.on('connect', onChange);
     return () => {
       socket.off('rooms:changed', onChange);
       socket.off('connect', onChange);
+      if (timer.current != null) window.clearTimeout(timer.current);
     };
-  }, [reload]);
+  }, [reload, reloadNow]);
 
   const createRoom = useCallback(
     async (data: RoomPatch & { name: string }) => {
       const { room } = await api<{ room: Room }>('/rooms', { method: 'POST', body: data });
-      await reload();
+      await reloadNow();
       return room;
     },
-    [reload],
+    [reloadNow],
   );
 
   const updateRoom = useCallback(
     async (id: string, patch: RoomPatch) => {
       const { room } = await api<{ room: Room }>(`/rooms/${id}`, { method: 'PATCH', body: patch });
-      await reload();
+      await reloadNow();
       return room;
     },
-    [reload],
+    [reloadNow],
   );
 
   const deleteRoom = useCallback(
     async (id: string) => {
       await api(`/rooms/${id}`, { method: 'DELETE' });
-      await reload();
+      setRooms((all) => all.filter((r) => r.id !== id));
+      await reloadNow();
     },
-    [reload],
+    [reloadNow],
   );
 
   const value = useMemo(
-    () => ({ rooms, loading, reload, createRoom, updateRoom, deleteRoom }),
-    [rooms, loading, reload, createRoom, updateRoom, deleteRoom],
+    () => ({ rooms, loading, reload: reloadNow, createRoom, updateRoom, deleteRoom }),
+    [rooms, loading, reloadNow, createRoom, updateRoom, deleteRoom],
   );
   return <RoomsContext.Provider value={value}>{children}</RoomsContext.Provider>;
 }

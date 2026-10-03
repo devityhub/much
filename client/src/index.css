@@ -163,22 +163,7 @@ input[type="range"].slider:hover::-webkit-slider-thumb {
   mask-image: radial-gradient(closest-side, #000 0%, rgb(0 0 0 / 0.8) 20%, rgb(0 0 0 / 0.45) 50%, rgb(0 0 0 / 0.12) 80%, transparent 100%);
 }
 
-@keyframes speaking {
-  0%,
-  100% {
-    box-shadow:
-      0 0 0 2px #23d18b,
-      0 0 0 6px rgba(35, 209, 139, 0.25);
-  }
-  50% {
-    box-shadow:
-      0 0 0 2px #23d18b,
-      0 0 0 10px rgba(35, 209, 139, 0.1);
-  }
-}
-.speaking {
-  animation: speaking 1.1s ease-in-out infinite;
-}
+/* Anel de fala fica no componente Avatar (estilo Discord), sem glow que corta no overflow. */
 
 @keyframes ring-pulse {
   0% {
@@ -221,12 +206,6 @@ input[type="range"].slider:hover::-webkit-slider-thumb {
 [data-lite] .eq-bar {
   animation: none;
   transform: scaleY(0.7);
-}
-[data-lite] .speaking {
-  animation: none;
-  box-shadow:
-    0 0 0 2px #23d18b,
-    0 0 0 5px rgba(35, 209, 139, 0.25);
 }
 [data-lite] *,
 [data-lite] *::before,

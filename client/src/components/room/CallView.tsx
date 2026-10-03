@@ -140,7 +140,7 @@ export default function CallView() {
             </div>
           )}
 
-          <div className={compact ? 'flex shrink-0 justify-center gap-3 overflow-x-auto no-scrollbar' : 'flex flex-1 items-center justify-center overflow-y-auto'}>
+          <div className={compact ? 'flex shrink-0 justify-center gap-3 overflow-x-auto no-scrollbar px-1 py-2' : 'flex flex-1 items-center justify-center overflow-y-auto px-1 py-2'}>
             <div className={compact ? 'flex gap-3' : `grid w-full gap-4 ${gridCols}`}>
               <AnimatePresence>
                 <ParticipantTile

@@ -11,9 +11,9 @@ import { useCall } from '../../context/call';
 import { useRooms } from '../../context/rooms';
 import { useToast } from '../../context/toast';
 import { anchorOf, useUi, type Anchor } from '../../context/ui';
-import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { listeningStore, useListening } from '../../lib/listening';
+import { fetchProfile, peekProfile } from '../../lib/profileCache';
 import { displayName, PRESENCE_INFO, visiblePresence } from '../../lib/users';
 import type { Activity, Presence, PublicUser, UserProfile } from '../../lib/types';
 
@@ -251,10 +251,15 @@ export function UserContent({ seed, close, flush = false }: { seed: PublicUser; 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const { relationship, friend } = actions;
 
-  // Busca de novo quando a relação muda (aceitou, bloqueou...); status de amigos vem ao vivo da lista.
+  // Cache compartilhado com o modal/painel: abre na hora se já buscou, senão um fetch só.
   useEffect(() => {
     let cancelled = false;
-    api<UserProfile>(`/users/${seed.id}`)
+    const cached = peekProfile(seed.id);
+    if (cached) {
+      setProfile(cached);
+      listeningStore.prime(cached.user.id, cached.listening);
+    }
+    fetchProfile(seed.id)
       .then((p) => {
         if (cancelled) return;
         setProfile(p);

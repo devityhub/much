@@ -45,47 +45,49 @@ export default function ParticipantTile({
   const volume = useVolume(user.id, 'voice');
   const trigger = useUserTrigger()(user);
   const blocked = useFriends().isBlocked(user.id);
+  const showCam = Boolean(camStream && !blocked);
 
   return (
     <motion.div
       onContextMenu={trigger.onContextMenu}
       layout
-      initial={{ opacity: 0, scale: 0.9 }}
+      initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-      className={`group relative flex aspect-video items-center justify-center overflow-hidden rounded-2xl bg-surface-3 ring-2 transition-shadow ${
+      exit={{ opacity: 0, scale: 0.96 }}
+      transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+      className={`group relative flex aspect-video items-center justify-center rounded-2xl bg-surface-3 ${
         compact ? 'w-44 shrink-0' : ''
-      } ${
-        speaking ? 'ring-ok shadow-[0_0_24px_rgba(35,209,139,0.35)]' : music ? 'ring-[#1db954]/50' : 'ring-transparent'
-      }`}
+      } ${speaking && !blocked ? 'shadow-[0_0_0_2px_#23a559]' : music ? 'shadow-[0_0_0_2px_rgba(29,185,84,0.55)]' : 'shadow-[0_0_0_2px_transparent]'}`}
     >
-      {camStream && !blocked ? (
-        <VideoView stream={camStream} mirror={mirror} className="h-full w-full object-cover" />
-      ) : (
-        <>
+      {/* Clip só da mídia — o anel de fala fica no avatar/tile sem ser cortado. */}
+      <div className="absolute inset-0 overflow-hidden rounded-2xl">
+        {showCam ? (
+          <VideoView stream={camStream!} mirror={mirror} className="h-full w-full object-cover" />
+        ) : (
           <div className="absolute inset-0 opacity-25" style={{ background: avatarGradient(user.avatar) }} />
-          <motion.button
-            onClick={trigger.onClick}
-            aria-label={`Ver perfil de ${user.nick}`}
-            className={`rounded-full ${blocked ? 'opacity-40 grayscale' : ''}`}
-            animate={speaking && !blocked ? { scale: [1, 1.06, 1] } : { scale: 1 }}
-            transition={{ repeat: speaking && !blocked ? Infinity : 0, duration: 1 }}
-          >
-            <Avatar nick={user.nick} avatar={user.avatar} image={user.avatarImage} size={compact ? 44 : 84} speaking={speaking && !blocked} />
-          </motion.button>
-        </>
+        )}
+      </div>
+
+      {!showCam && (
+        <button
+          type="button"
+          onClick={trigger.onClick}
+          aria-label={`Ver perfil de ${user.nick}`}
+          className={`relative z-10 rounded-full p-1 ${blocked ? 'opacity-40 grayscale' : ''}`}
+        >
+          <Avatar nick={user.nick} avatar={user.avatar} image={user.avatarImage} size={compact ? 44 : 84} speaking={speaking && !blocked} />
+        </button>
       )}
 
       {blocked && (
-        <div className="absolute top-2 left-2 flex items-center gap-1 rounded-lg bg-danger/80 px-2 py-1 text-[11px] font-semibold">
+        <div className="absolute top-2 left-2 z-10 flex items-center gap-1 rounded-lg bg-danger/80 px-2 py-1 text-[11px] font-semibold">
           <Ban size={12} /> Bloqueado · silenciado
         </div>
       )}
 
       <button
         onClick={trigger.onClick}
-        className="absolute bottom-2 left-2 flex max-w-[80%] items-center gap-1.5 rounded-lg bg-black/55 px-2 py-1 text-xs font-medium backdrop-blur hover:bg-black/75"
+        className="absolute bottom-2 left-2 z-10 flex max-w-[80%] items-center gap-1.5 rounded-lg bg-black/55 px-2 py-1 text-xs font-medium backdrop-blur hover:bg-black/75"
       >
         {!micOn && <MicOff size={13} className="shrink-0 text-danger" />}
         {sharingScreen && <Monitor size={13} className="shrink-0 text-accent" />}
@@ -97,7 +99,7 @@ export default function ParticipantTile({
       </button>
 
       {!isSelf && !compact && (
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-2 right-2 z-10">
           <button
             onClick={() => setVolumeOpen((v) => !v)}
             className="rounded-lg bg-black/55 p-1.5 opacity-0 backdrop-blur transition group-hover:opacity-100"
@@ -125,7 +127,7 @@ export default function ParticipantTile({
       )}
 
       {disconnected && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/70 text-xs text-muted">
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-1 rounded-2xl bg-black/70 text-xs text-muted">
           <WifiOff size={20} /> Reconectando...
         </div>
       )}

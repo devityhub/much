@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { motion } from 'motion/react';
 import { Compass, Megaphone, MicOff, MonitorUp, Pencil, Plus, Trash2, Video, Volume2 } from 'lucide-react';
 import RoomIcon from '../../components/RoomIcon';
 import SpotifyBadge, { SpotifyLogo, SPOTIFY_GREEN } from '../../components/SpotifyBadge';
@@ -21,11 +21,8 @@ function MemberChip({ member, stream }: { member: RoomMember; stream: MediaStrea
   const speaking = useSpeaking(member.mic ? stream : null);
   const trigger = useUserTrigger()(member.user);
   return (
-    <motion.button
-      layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
+    <button
+      type="button"
       {...trigger}
       className="flex items-center gap-2 rounded-lg bg-surface-3 py-1 pr-2 pl-1 text-xs transition-colors hover:bg-surface-4"
     >
@@ -35,11 +32,11 @@ function MemberChip({ member, stream }: { member: RoomMember; stream: MediaStrea
       {member.cam && <Video size={12} className="text-muted" />}
       {member.screen && <MonitorUp size={12} className="text-accent" />}
       {!member.mic && <MicOff size={12} className="text-danger/80" />}
-    </motion.button>
+    </button>
   );
 }
 
-function RoomCard({ room, index }: { room: Room; index: number }) {
+function RoomCard({ room }: { room: Room }) {
   const { active, joinRoom, snapshot } = useCall();
   const { deleteRoom, updateRoom } = useRooms();
   const { setEditingRoom } = useUi();
@@ -57,13 +54,7 @@ function RoomCard({ room, index }: { room: Room; index: number }) {
   }, [current, snapshot]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, type: 'spring', stiffness: 260, damping: 24 }}
-      whileHover={{ y: -6 }}
-      className="group relative overflow-hidden rounded-2xl border border-line bg-surface-1 shadow-lg shadow-black/20"
-    >
+    <div className="group relative overflow-hidden rounded-2xl border border-line bg-surface-1 shadow-lg shadow-black/20 transition hover:-translate-y-1 hover:border-white/10">
       <div className="relative h-32 overflow-hidden" style={{ background: coverBackground(room.cover, room.coverImage) }}>
         {!room.coverImage && (
           <motion.div
@@ -125,11 +116,9 @@ function RoomCard({ room, index }: { room: Room; index: number }) {
         </p>
         {room.description && <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted">{room.description}</p>}
         <div className="mt-3 flex min-h-[28px] flex-wrap gap-1.5">
-          <AnimatePresence initial={false}>
-            {room.live.members.map((m) => (
-              <MemberChip key={m.socketId} member={m} stream={streams.get(m.socketId) ?? null} />
-            ))}
-          </AnimatePresence>
+          {room.live.members.map((m) => (
+            <MemberChip key={m.socketId} member={m} stream={streams.get(m.socketId) ?? null} />
+          ))}
           {!room.live.members.length && <span className="self-center text-xs text-faint">Ninguém aqui ainda</span>}
         </div>
         <div className="mt-4 flex items-center justify-between">
@@ -141,7 +130,7 @@ function RoomCard({ room, index }: { room: Room; index: number }) {
           </Button>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -186,14 +175,14 @@ export default function ExplorePage() {
           </div>
         </section>
 
-        {loading ? (
+        {loading && !rooms.length ? (
           <div className="flex justify-center py-20">
             <Spinner />
           </div>
         ) : rooms.length ? (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {rooms.map((room, i) => (
-              <RoomCard key={room.id} room={room} index={i} />
+            {rooms.map((room) => (
+              <RoomCard key={room.id} room={room} />
             ))}
           </div>
         ) : (

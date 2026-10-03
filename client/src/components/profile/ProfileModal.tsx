@@ -33,14 +33,14 @@ import { useUserActions } from './useUserActions';
 import { useCall } from '../../context/call';
 import { useToast } from '../../context/toast';
 import { useUi } from '../../context/ui';
-import { api } from '../../lib/api';
 import { listeningStore, useListening } from '../../lib/listening';
+import { fetchProfile, peekProfile } from '../../lib/profileCache';
 import { coverBackground } from '../../lib/theme';
 import { displayName, presenceLabel } from '../../lib/users';
 import type { PublicUser, Room, UserProfile, VisiblePresence } from '../../lib/types';
 
 /** O perfil fica aberto por muito tempo, então recarrega sozinho para a música e a sala não envelhecerem. */
-const REFRESH_MS = 15000;
+const REFRESH_MS = 45000;
 
 const PRESENCE_COLOR: Record<VisiblePresence, string> = {
   online: 'bg-ok',
@@ -248,8 +248,13 @@ function Content({ seed, close }: { seed: PublicUser; close: () => void }) {
 
   useEffect(() => {
     let cancelled = false;
-    const load = () =>
-      api<UserProfile>(`/users/${seed.id}`).then(
+    const cached = peekProfile(seed.id);
+    if (cached) {
+      setLoaded({ profile: cached, at: Date.now() });
+      listeningStore.prime(cached.user.id, cached.listening);
+    }
+    const load = (force = false) =>
+      fetchProfile(seed.id, { force }).then(
         (profile) => {
           if (cancelled) return;
           setLoaded({ profile, at: Date.now() });
@@ -258,7 +263,7 @@ function Content({ seed, close }: { seed: PublicUser; close: () => void }) {
         () => undefined,
       );
     void load();
-    const timer = window.setInterval(() => void load(), REFRESH_MS);
+    const timer = window.setInterval(() => void load(true), REFRESH_MS);
     return () => {
       cancelled = true;
       window.clearInterval(timer);

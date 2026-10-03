@@ -48,20 +48,16 @@ usersRouter.get('/:id', (req, res) => {
   // Vale ver status: amigo online, ou você mesmo (inclusive invisível, que é o seu próprio caso).
   const visible = relationship === 'self' || (presence !== null && presence !== 'offline');
   const activity = visible ? activityOf(row.id) : null;
-
-  const mutual = relationship === 'self' || relationship === 'blocked' ? [] : queries.mutualFriends.all({ me: me.id, other: row.id });
-  const mutualFriends = { total: mutual.length, users: mutual.slice(0, MUTUAL_SHOWN).map(toPublicUser) };
-
   const hidden = relationship === 'blocked';
-  const stats = hidden
-    ? { friends: 0, rooms: 0, stickers: 0 }
-    : {
-        friends: queries.countFriends.get(row.id, row.id)?.count ?? 0,
-        rooms: 0,
-        stickers: queries.countStickers.get(row.id)?.count ?? 0,
-      };
-  const owned = hidden ? [] : queries.roomsOwnedBy.all(row.id).map(serializeRoom);
-  stats.rooms = owned.length;
+
+  // Leituras leves e independentes — evita waterfall no handler.
+  const mutual = hidden || relationship === 'self' ? [] : queries.mutualFriends.all({ me: me.id, other: row.id });
+  const mutualFriends = { total: mutual.length, users: mutual.slice(0, MUTUAL_SHOWN).map(toPublicUser) };
+  const friendsCount = hidden ? 0 : (queries.countFriends.get(row.id, row.id)?.count ?? 0);
+  const stickersCount = hidden ? 0 : (queries.countStickers.get(row.id)?.count ?? 0);
+  const ownedRows = hidden ? [] : queries.roomsOwnedBy.all(row.id);
+  const owned = ownedRows.map(serializeRoom);
+  const stats = { friends: friendsCount, rooms: owned.length, stickers: stickersCount };
 
   // A sala do momento e a música só aparecem para quem já pode ver o status da pessoa.
   // A sala vem do roomActivityOf porque a atividade visível pode estar tomada pelo Spotify.
@@ -70,7 +66,11 @@ usersRouter.get('/:id', (req, res) => {
   const current = liveRoomId ? queries.roomById.get(liveRoomId) : null;
   // A sala divulgada aparece para todo mundo: é a propaganda que o dono escolheu deixar no perfil.
   const promoted = hidden ? null : queries.promotedRoomOf.get(row.id);
-  const rooms = { current: current ? serializeRoom(current) : null, owned, promoted: promoted ? serializeRoom(promoted) : null };
+  const rooms = {
+    current: current ? serializeRoom(current) : null,
+    owned,
+    promoted: promoted ? serializeRoom(promoted) : null,
+  };
 
   const listening = visible && !hidden ? spotifyPresence.listeningOf(row.id) : null;
 
