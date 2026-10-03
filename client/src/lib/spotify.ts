@@ -42,12 +42,7 @@ export function useSpotifyAccount() {
   return value;
 }
 
-/**
- * Abre o login do Spotify (popup) e espera a conta aparecer ligada no servidor.
- * O popup é aberto no mesmo clique do usuário para o navegador não bloquear.
- */
-export async function connectSpotify(): Promise<SpotifyAccount> {
-  // Abrir no gesto do clique; depois navega para a URL do OAuth.
+function openSpotifyPopup() {
   const popup = window.open('about:blank', 'much-spotify', 'width=520,height=780,noopener=no');
   if (popup) {
     try {
@@ -58,18 +53,28 @@ export async function connectSpotify(): Promise<SpotifyAccount> {
       // cross-origin / closed
     }
   }
+  return popup;
+}
+
+/**
+ * Abre o login do Spotify (popup) e espera a conta aparecer ligada no servidor.
+ * O popup é aberto no mesmo clique do usuário para o navegador não bloquear.
+ * Passe `popup` se já abriu a janela no clique (ex.: depois de salvar as chaves).
+ */
+export async function connectSpotify(popup?: Window | null): Promise<SpotifyAccount> {
+  const win = popup && !popup.closed ? popup : openSpotifyPopup();
 
   let url: string;
   try {
     ({ url } = await api<{ url: string }>('/spotify/authorize', { method: 'POST' }));
   } catch (err) {
-    popup?.close();
+    win?.close();
     throw err;
   }
 
-  if (popup && !popup.closed) {
-    popup.location.href = url;
-    popup.focus();
+  if (win && !win.closed) {
+    win.location.href = url;
+    win.focus();
   } else {
     // Popup bloqueado: vai na mesma aba (usuário volta pelo histórico).
     window.location.assign(url);
@@ -92,7 +97,7 @@ export async function connectSpotify(): Promise<SpotifyAccount> {
         const next = await refreshSpotifyAccount();
         if (next.linked) {
           try {
-            popup.close();
+            win?.close();
           } catch {
             // ignore
           }
@@ -101,7 +106,7 @@ export async function connectSpotify(): Promise<SpotifyAccount> {
       } catch {
         // tenta de novo no próximo ciclo
       }
-      if (popup.closed && Date.now() - started > 4000) {
+      if (win?.closed && Date.now() - started > 4000) {
         // Usuário fechou sem conectar — confirma no servidor antes de desistir.
         try {
           const next = await refreshSpotifyAccount();
@@ -125,6 +130,12 @@ export async function connectSpotify(): Promise<SpotifyAccount> {
 export async function disconnectSpotify() {
   await api('/spotify', { method: 'DELETE' });
   await refreshSpotifyAccount();
+}
+
+/** Uma vez por servidor: libera o OAuth. Depois todo mundo só clica em Conectar. */
+export async function saveSpotifyConfig(clientId: string, clientSecret: string) {
+  await api('/spotify/config', { method: 'PUT', body: { clientId, clientSecret } });
+  return refreshSpotifyAccount();
 }
 
 /** Preferências estilo Discord: perfil e status. */

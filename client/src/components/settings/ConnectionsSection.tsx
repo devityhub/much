@@ -1,10 +1,16 @@
 import { useState } from 'react';
-import { Loader2, X } from 'lucide-react';
+import { Check, Copy, ExternalLink, Loader2, X } from 'lucide-react';
 import { Button, Slider, Toggle } from '../ui';
 import { SpotifyLogo } from '../SpotifyBadge';
 import { useToast } from '../../context/toast';
 import { settingsStore, useSettings } from '../../lib/settings';
-import { connectSpotify, disconnectSpotify, updateSpotifyPrefs, useSpotifyAccount } from '../../lib/spotify';
+import {
+  connectSpotify,
+  disconnectSpotify,
+  saveSpotifyConfig,
+  updateSpotifyPrefs,
+  useSpotifyAccount,
+} from '../../lib/spotify';
 
 /** Interruptor azul no estilo Discord. */
 function DiscordToggle({
@@ -37,11 +43,122 @@ function DiscordToggle({
   );
 }
 
+/** Desbloqueio único do servidor — sem tutorial longo. Depois é só login Spotify. */
+function UnlockSpotify({
+  redirectUri,
+  onDone,
+  onCancel,
+}: {
+  redirectUri: string;
+  onDone: () => void;
+  onCancel: () => void;
+}) {
+  const toast = useToast();
+  const [clientId, setClientId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copy = () => {
+    void navigator.clipboard?.writeText(redirectUri).then(
+      () => {
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 2000);
+      },
+      () => toast('Não deu para copiar', 'error'),
+    );
+  };
+
+  const save = async () => {
+    // Popup no mesmo clique — senão o navegador bloqueia o login do Spotify.
+    const popup = window.open('about:blank', 'much-spotify', 'width=520,height=780,noopener=no');
+    setBusy(true);
+    try {
+      await saveSpotifyConfig(clientId.trim(), clientSecret.trim());
+      await connectSpotify(popup);
+      toast('Spotify conectado!', 'success');
+      onDone();
+    } catch (err) {
+      popup?.close();
+      toast((err as Error).message, 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" onMouseDown={onCancel}>
+      <div
+        className="w-full max-w-md rounded-xl bg-[#1e1f22] p-5 shadow-2xl"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-start gap-3">
+          <SpotifyLogo size={40} />
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-white">Liberar Spotify neste Much</p>
+            <p className="text-sm text-muted">Só uma vez. Depois todo mundo só clica em Conectar e faz login na conta.</p>
+          </div>
+          <button type="button" onClick={onCancel} className="rounded-md p-1 text-muted hover:bg-white/10 hover:text-white">
+            <X size={18} />
+          </button>
+        </div>
+
+        <a
+          href="https://developer.spotify.com/dashboard"
+          target="_blank"
+          rel="noreferrer"
+          className="mb-3 inline-flex items-center gap-1.5 text-sm font-semibold text-[#5865F2] hover:underline"
+        >
+          <ExternalLink size={14} /> Criar app grátis no Spotify
+        </a>
+
+        <p className="mb-1 text-xs font-semibold tracking-wide text-muted uppercase">Redirect URI (cole no app)</p>
+        <div className="mb-3 flex gap-2">
+          <input readOnly value={redirectUri} onFocus={(e) => e.currentTarget.select()} className="input font-mono text-xs" />
+          <Button variant="secondary" size="sm" onClick={copy} className="shrink-0">
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+          </Button>
+        </div>
+
+        <div className="mb-4 grid gap-2">
+          <input
+            className="input font-mono text-sm"
+            placeholder="Client ID"
+            autoComplete="off"
+            spellCheck={false}
+            value={clientId}
+            onChange={(e) => setClientId(e.target.value)}
+          />
+          <input
+            className="input font-mono text-sm"
+            type="password"
+            placeholder="Client Secret"
+            autoComplete="new-password"
+            spellCheck={false}
+            value={clientSecret}
+            onChange={(e) => setClientSecret(e.target.value)}
+          />
+        </div>
+
+        <Button
+          disabled={busy || !clientId.trim() || !clientSecret.trim()}
+          onClick={() => void save()}
+          className="w-full bg-[#5865F2] hover:bg-[#4752c4]"
+        >
+          {busy && <Loader2 size={16} className="animate-spin" />}
+          Salvar e conectar conta
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function ConnectionsSection() {
   const account = useSpotifyAccount();
   const settings = useSettings();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
+  const [unlock, setUnlock] = useState(false);
 
   const run = async (job: () => Promise<unknown>, done?: string) => {
     setBusy(true);
@@ -53,6 +170,15 @@ export default function ConnectionsSection() {
     } finally {
       setBusy(false);
     }
+  };
+
+  const onConnect = () => {
+    if (!account) return;
+    if (!account.configured) {
+      setUnlock(true);
+      return;
+    }
+    void run(connectSpotify, 'Spotify conectado!');
   };
 
   const linked = Boolean(account?.linked);
@@ -108,16 +234,15 @@ export default function ConnectionsSection() {
             <p className="font-semibold text-white">Spotify</p>
             <p className="text-sm text-muted">Mostre o que você está ouvindo no perfil e no status</p>
           </div>
-          <Button
-            size="sm"
-            disabled={busy || !account}
-            onClick={() => void run(connectSpotify, 'Spotify conectado!')}
-            className="shrink-0 bg-[#5865F2] hover:bg-[#4752c4]"
-          >
+          <Button size="sm" disabled={busy || !account} onClick={onConnect} className="shrink-0 bg-[#5865F2] hover:bg-[#4752c4]">
             {busy ? <Loader2 size={16} className="animate-spin" /> : null}
             Conectar
           </Button>
         </div>
+      )}
+
+      {unlock && account && (
+        <UnlockSpotify redirectUri={account.redirectUri} onDone={() => setUnlock(false)} onCancel={() => setUnlock(false)} />
       )}
 
       <div className="rounded-xl bg-[#1e1f22] p-4">
