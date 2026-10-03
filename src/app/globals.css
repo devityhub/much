@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+:root {
+  --dc-server: #1e1f22;
+  --dc-sidebar: #2b2d31;
+  --dc-main: #313338;
+  --dc-user: #232428;
+  --dc-hover: #35373c;
+  --dc-active: #404249;
+  --dc-brand: #5865f2;
+  --dc-brand-hover: #4752c4;
+  --dc-text: #f2f3f5;
+  --dc-muted: #949ba4;
+  --dc-channel: #949ba4;
+  --dc-interactive: #b5bac1;
+  --dc-hover-text: #dbdee1;
+  --background: var(--dc-server);
+  --foreground: var(--dc-text);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-app);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--dc-server);
+  color: var(--dc-text);
+  font-family: var(--font-app), "Segoe UI", sans-serif;
+  overflow: hidden;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1a1b1e;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
