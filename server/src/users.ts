@@ -72,7 +72,9 @@ usersRouter.get('/:id', (req, res) => {
     promoted: promoted ? serializeRoom(promoted) : null,
   };
 
-  const listening = visible && !hidden ? spotifyPresence.listeningOf(row.id) : null;
+  const spotify = queries.spotifyAccount.get(row.id);
+  const listening =
+    visible && !hidden && spotify?.show_on_profile ? spotifyPresence.listeningOf(row.id) : null;
 
   res.json({ user, relationship, requestId, since, presence, activity, mutualFriends, stats, rooms, listening });
 });

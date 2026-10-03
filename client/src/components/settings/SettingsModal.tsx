@@ -24,7 +24,7 @@ import type { Presence } from '../../lib/types';
 const SECTIONS: Array<{ id: SettingsSection; label: string; icon: ReactNode; group: string }> = [
   { id: 'account', label: 'Minha conta', icon: <User size={17} />, group: 'Usuário' },
   { id: 'profile', label: 'Perfil', icon: <Palette size={17} />, group: 'Usuário' },
-  { id: 'connections', label: 'Conexões', icon: <Link2 size={17} />, group: 'Usuário' },
+  { id: 'connections', label: 'Apps conectados', icon: <Link2 size={17} />, group: 'Usuário' },
   { id: 'devices', label: 'Permissões e dispositivos', icon: <KeyRound size={17} />, group: 'App' },
   { id: 'voice', label: 'Voz e áudio', icon: <Mic size={17} />, group: 'App' },
   { id: 'video', label: 'Vídeo', icon: <Camera size={17} />, group: 'App' },

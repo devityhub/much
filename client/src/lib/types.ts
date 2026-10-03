@@ -88,6 +88,10 @@ export interface SpotifyAccount {
   linked: boolean;
   name: string | null;
   premium: boolean;
+  /** Exibir o card do Spotify no perfil (estilo Discord). */
+  showOnProfile: boolean;
+  /** Exibir “ouvindo agora” como status para amigos. */
+  showAsStatus: boolean;
   /** Só o dono do servidor cadastra as chaves do app do Spotify, e só quando não vêm do .env. */
   canConfigure: boolean;
   fromEnv: boolean;

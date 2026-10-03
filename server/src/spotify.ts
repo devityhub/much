@@ -38,7 +38,9 @@ const key = (label: string) =>
 const configSchema = z.object({ clientId: key('O Client ID'), clientSecret: key('O Client Secret') });
 
 function requireConfigured() {
-  if (!spotifyConfigured()) throw new HttpError(503, 'O Spotify não está configurado neste servidor');
+  if (!spotifyConfigured()) {
+    throw new HttpError(503, 'O Spotify ainda não foi liberado neste servidor. Peça para quem hospeda o Much colocar as chaves no .env.');
+  }
 }
 
 /** Mexer nas chaves muda o Spotify de todo mundo na instância. */
@@ -110,6 +112,37 @@ spotifyRouter.get('/me', (req, res) => {
     linked: Boolean(account),
     name: account?.display_name ?? null,
     premium: account?.product === 'premium',
+    showOnProfile: account ? Boolean(account.show_on_profile) : true,
+    showAsStatus: account ? Boolean(account.show_as_status) : true,
+    canConfigure: canConfigureSpotify(me.id),
+    fromEnv: spotifyFromEnv(),
+    redirectUri: redirectUriFor(req),
+  });
+});
+
+const prefsSchema = z.object({
+  showOnProfile: z.boolean().optional(),
+  showAsStatus: z.boolean().optional(),
+});
+
+spotifyRouter.patch('/me', (req, res) => {
+  const me = currentUser(res);
+  const account = queries.spotifyAccount.get(me.id);
+  if (!account) throw new HttpError(400, 'Conecte o Spotify primeiro');
+  const prefs = prefsSchema.parse(req.body);
+  const showOnProfile = prefs.showOnProfile ?? Boolean(account.show_on_profile);
+  const showAsStatus = prefs.showAsStatus ?? Boolean(account.show_as_status);
+  queries.updateSpotifyPrefs.run(showOnProfile ? 1 : 0, showAsStatus ? 1 : 0, me.id);
+  spotifyPresence.unwatch(me.id);
+  if (showOnProfile || showAsStatus) spotifyPresence.watch(me.id);
+  spotifyPresence.sync(me.id);
+  res.json({
+    configured: spotifyConfigured(),
+    linked: true,
+    name: account.display_name,
+    premium: account.product === 'premium',
+    showOnProfile,
+    showAsStatus,
     canConfigure: canConfigureSpotify(me.id),
     fromEnv: spotifyFromEnv(),
     redirectUri: redirectUriFor(req),

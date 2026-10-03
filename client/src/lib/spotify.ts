@@ -83,15 +83,11 @@ export async function disconnectSpotify() {
   await refreshSpotifyAccount();
 }
 
-/** Chaves do app do Spotify, cadastradas pelo dono do servidor em Conexões. */
-export async function saveSpotifyConfig(clientId: string, clientSecret: string) {
-  await api('/spotify/config', { method: 'PUT', body: { clientId, clientSecret } });
-  return refreshSpotifyAccount();
-}
-
-export async function clearSpotifyConfig() {
-  await api('/spotify/config', { method: 'DELETE' });
-  return refreshSpotifyAccount();
+/** Preferências estilo Discord: perfil e status. */
+export async function updateSpotifyPrefs(prefs: { showOnProfile?: boolean; showAsStatus?: boolean }) {
+  const next = await api<SpotifyAccount>('/spotify/me', { method: 'PATCH', body: prefs });
+  setAccount(next);
+  return next;
 }
 
 export interface SearchResult {

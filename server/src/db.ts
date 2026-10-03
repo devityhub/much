@@ -49,7 +49,9 @@ db.exec(`
     refresh_token TEXT NOT NULL,
     expires_at INTEGER NOT NULL,
     display_name TEXT NOT NULL DEFAULT '',
-    product TEXT NOT NULL DEFAULT ''
+    product TEXT NOT NULL DEFAULT '',
+    show_on_profile INTEGER NOT NULL DEFAULT 1,
+    show_as_status INTEGER NOT NULL DEFAULT 1
   );
 
   CREATE TABLE IF NOT EXISTS dm_messages (
@@ -170,6 +172,10 @@ function addMissingColumns(table: string, columns: Record<string, string>) {
 addMissingColumns('users', PROFILE_COLUMNS);
 addMissingColumns('rooms', ROOM_COLUMNS);
 addMissingColumns('dm_messages', { pinned_at: 'INTEGER' });
+addMissingColumns('spotify_accounts', {
+  show_on_profile: 'INTEGER NOT NULL DEFAULT 1',
+  show_as_status: 'INTEGER NOT NULL DEFAULT 1',
+});
 
 /** Pedidos de mensagem de quem ainda não é amigo (estilo Discord). */
 db.exec(`
@@ -388,6 +394,9 @@ export const queries = {
   updateSpotifyTokens: db.prepare<[string, string, number, number]>(
     'UPDATE spotify_accounts SET access_token = ?, refresh_token = ?, expires_at = ? WHERE user_id = ?',
   ),
+  updateSpotifyPrefs: db.prepare<[number, number, number]>(
+    'UPDATE spotify_accounts SET show_on_profile = ?, show_as_status = ? WHERE user_id = ?',
+  ),
   deleteSpotifyAccount: db.prepare<[number]>('DELETE FROM spotify_accounts WHERE user_id = ?'),
   /** As chaves do app do Spotify valem para o servidor todo, então ninguém fica ligado quando elas mudam. */
   clearSpotifyAccounts: db.prepare('DELETE FROM spotify_accounts'),
@@ -581,6 +590,8 @@ export interface SpotifyAccountRow {
   expires_at: number;
   display_name: string;
   product: string;
+  show_on_profile: number;
+  show_as_status: number;
 }
 
 export function hasBlocked(blocker: number, blocked: number) {

@@ -75,10 +75,16 @@ function hidden(userId: number) {
   return !row || row.presence === 'invisible' || !hub.isOnline(userId);
 }
 
+function accountAllowsStatus(userId: number) {
+  const account = queries.spotifyAccount.get(userId);
+  return Boolean(account?.show_as_status);
+}
+
 function broadcast(userId: number) {
   const listening = listeningOf(userId);
+  // Você sempre vê a sua; amigos só se "Exibir o Spotify como seu status" estiver ligado.
   hub.emitToUser(userId, 'spotify:presence', { userId, listening });
-  const forFriends = { userId, listening: hidden(userId) ? null : listening };
+  const forFriends = { userId, listening: hidden(userId) || !accountAllowsStatus(userId) ? null : listening };
   for (const id of friendIds(userId)) if (hub.isOnline(id)) hub.emitToUser(id, 'spotify:presence', forFriends);
 }
 
@@ -113,7 +119,9 @@ setInterval(() => {
 export const spotifyPresence = {
   /** Começa a acompanhar o Spotify de quem está online e tem conta ligada. */
   watch(userId: number) {
-    if (watches.has(userId) || !hub.isOnline(userId) || !queries.spotifyAccount.get(userId)) return;
+    const account = queries.spotifyAccount.get(userId);
+    if (watches.has(userId) || !hub.isOnline(userId) || !account) return;
+    if (!account.show_as_status && !account.show_on_profile) return;
     watches.set(userId, {
       userId,
       track: null,
@@ -146,7 +154,7 @@ export const spotifyPresence = {
   snapshotFor(viewerId: number) {
     const list: Array<{ userId: number; listening: Listening | null }> = [];
     for (const id of [viewerId, ...friendIds(viewerId)]) {
-      if (id !== viewerId && hidden(id)) continue;
+      if (id !== viewerId && (hidden(id) || !accountAllowsStatus(id))) continue;
       const listening = listeningOf(id);
       if (listening) list.push({ userId: id, listening });
     }
@@ -155,6 +163,7 @@ export const spotifyPresence = {
 };
 
 setSpotifyActivity((userId): Activity => {
+  if (!accountAllowsStatus(userId)) return null;
   const listening = listeningOf(userId);
   if (!listening?.isPlaying) return null;
   return { type: 'spotify', name: listening.track.name, artists: listening.track.artists };
