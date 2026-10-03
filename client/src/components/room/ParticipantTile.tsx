@@ -57,7 +57,13 @@ export default function ParticipantTile({
       transition={{ type: 'spring', stiffness: 320, damping: 30 }}
       className={`group relative flex aspect-video items-center justify-center overflow-hidden rounded-2xl bg-surface-3 ${
         compact ? 'w-44 shrink-0' : ''
-      } ${music ? 'ring-2 ring-[#1db954]/60' : 'ring-2 ring-transparent'}`}
+      } ${
+        speaking && !blocked
+          ? 'ring-2 ring-ok shadow-[0_0_18px_rgba(35,209,139,0.45)]'
+          : music
+            ? 'ring-2 ring-[#1db954]/60'
+            : 'ring-2 ring-transparent'
+      }`}
     >
       {showCam ? (
         <VideoView stream={camStream!} mirror={mirror} className="h-full w-full object-cover" />
@@ -68,7 +74,7 @@ export default function ParticipantTile({
             type="button"
             onClick={trigger.onClick}
             aria-label={`Ver perfil de ${user.nick}`}
-            className={`relative z-10 rounded-full ${blocked ? 'opacity-40 grayscale' : ''} ${speaking && !blocked ? 'brightness-110' : ''}`}
+            className={`relative z-10 rounded-full ${blocked ? 'opacity-40 grayscale' : ''}`}
           >
             <Avatar nick={user.nick} avatar={user.avatar} image={user.avatarImage} size={compact ? 44 : 84} />
           </button>

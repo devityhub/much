@@ -1,7 +1,6 @@
 import type { Server, Socket } from 'socket.io';
 import { z } from 'zod';
 import { config } from './config';
-import { spotifyConfigured } from './spotifyConfig';
 import { spotifyPresence } from './spotifyPresence';
 import { userFromToken } from './auth';
 import { hasBlocked, queries, type PublicUser } from './db';
@@ -251,8 +250,7 @@ export function setupSignaling(io: Server) {
       const reply: Ack = typeof ack === 'function' ? ack : () => undefined;
       const roomId = socket.data.roomId;
       if (!roomId) return reply({ ok: false, error: 'Entre numa sala ou chamada primeiro' });
-      if (!spotifyConfigured()) return reply({ ok: false, error: 'O Spotify não está configurado neste servidor' });
-      if (!queries.spotifyAccount.get(me.id)) return reply({ ok: false, error: 'Conecte sua conta do Spotify primeiro' });
+      // Só reserva o slot de DJ — o áudio vem da aba/app do Spotify do usuário, sem OAuth.
       const result = music.start(roomId, socket.id, socket.data.user);
       if (!result.ok) return reply(result);
       reply({ ok: true, music: result.music });

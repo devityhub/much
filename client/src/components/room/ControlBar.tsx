@@ -1,13 +1,11 @@
-import { useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { Headphones, HeadphoneOff, Loader2, Mic, MicOff, MonitorOff, MonitorUp, PhoneOff, Settings, Video, VideoOff, VolumeX } from 'lucide-react';
 import { SpotifyLogo } from '../SpotifyBadge';
 import { useCall } from '../../context/call';
-import { useToast } from '../../context/toast';
 import { useUi } from '../../context/ui';
 import { canCaptureSpotify, desktop } from '../../lib/desktop';
 import { settingsStore, useSettings } from '../../lib/settings';
-import { connectSpotify, useSpotifyAccount } from '../../lib/spotify';
 import { canCaptureTab } from '../../lib/tabAudio';
 import { displayName } from '../../lib/users';
 
@@ -57,10 +55,6 @@ function ControlButton({
 function SpotifyButton() {
   const { snapshot, musicBusy, startMusic, stopMusic } = useCall();
   const settings = useSettings();
-  const account = useSpotifyAccount();
-  const { openSettings } = useUi();
-  const toast = useToast();
-  const [connecting, setConnecting] = useState(false);
   if (!snapshot) return null;
 
   const music = snapshot.music;
@@ -87,58 +81,21 @@ function SpotifyButton() {
     );
   }
 
-  const unavailable = desktop
+  const blocked = desktop
     ? canCaptureSpotify
       ? null
       : 'Atualize o app desktop para tocar Spotify'
     : canCaptureTab
       ? null
       : 'Tocar Spotify na sala: use o Chrome, o Edge ou o app desktop';
-  // Para o dono do servidor o botão não morre aqui: leva para a tela onde as chaves são cadastradas.
-  const setupHere = Boolean(account && !account.configured && account.canConfigure);
-  const notConfigured = account && !account.configured && !setupHere ? 'Spotify não configurado neste servidor' : null;
-  const blocked = unavailable ?? notConfigured;
-
-  const start = async () => {
-    if (setupHere) return openSettings('connections');
-    if (!account?.linked) {
-      setConnecting(true);
-      try {
-        await connectSpotify();
-      } catch (err) {
-        toast((err as Error).message, 'error');
-        return;
-      } finally {
-        setConnecting(false);
-      }
-      // O seletor de aba só abre dentro de um clique, e o login já gastou esse clique.
-      if (!desktop) {
-        toast('Spotify conectado! Clique de novo no botão do Spotify e escolha a aba do open.spotify.com', 'success');
-        return;
-      }
-      toast('Spotify conectado!', 'success');
-    }
-    await startMusic();
-  };
-
-  const idleLabel = desktop ? 'Tocar música do Spotify para a sala' : 'Tocar a aba do Spotify para a sala';
 
   return (
     <ControlButton
-      label={
-        blocked ??
-        (setupHere
-          ? 'Configurar o Spotify deste servidor'
-          : connecting
-            ? 'Conectando ao Spotify...'
-            : account?.linked
-              ? idleLabel
-              : 'Conectar Spotify e tocar para a sala')
-      }
-      onClick={() => void start()}
-      disabled={Boolean(blocked) || !account || connecting || musicBusy}
+      label={blocked ?? (desktop ? 'Tocar música do Spotify para a sala' : 'Tocar a aba do Spotify para a sala')}
+      onClick={() => void startMusic()}
+      disabled={Boolean(blocked) || musicBusy}
     >
-      {connecting || musicBusy ? <Loader2 size={20} className="animate-spin" /> : <SpotifyLogo size={22} color={blocked ? '#9097a6' : undefined} />}
+      {musicBusy ? <Loader2 size={20} className="animate-spin" /> : <SpotifyLogo size={22} color={blocked ? '#9097a6' : undefined} />}
     </ControlButton>
   );
 }
