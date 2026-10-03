@@ -2,7 +2,7 @@ import { useEffect, useSyncExternalStore } from 'react';
 import { api } from './api';
 import type { SpotifyAccount } from './types';
 
-const POLL_MS = 2000;
+const POLL_MS = 1500;
 const CONNECT_TIMEOUT_MS = 3 * 60_000;
 
 let account: SpotifyAccount | null = null;
@@ -43,12 +43,38 @@ export function useSpotifyAccount() {
 }
 
 /**
- * Abre o login do Spotify (popup no navegador, navegador do sistema no app desktop)
- * e espera a conta aparecer ligada no servidor.
+ * Abre o login do Spotify (popup) e espera a conta aparecer ligada no servidor.
+ * O popup é aberto no mesmo clique do usuário para o navegador não bloquear.
  */
 export async function connectSpotify(): Promise<SpotifyAccount> {
-  const { url } = await api<{ url: string }>('/spotify/authorize', { method: 'POST' });
-  window.open(url, 'much-spotify', 'width=480,height=760');
+  // Abrir no gesto do clique; depois navega para a URL do OAuth.
+  const popup = window.open('about:blank', 'much-spotify', 'width=520,height=780,noopener=no');
+  if (popup) {
+    try {
+      popup.document.write(
+        '<!doctype html><title>Spotify</title><body style="margin:0;background:#0c0d11;color:#b3b3b3;font:15px/1.4 system-ui;display:flex;align-items:center;justify-content:center;height:100vh">Abrindo login do Spotify…</body>',
+      );
+    } catch {
+      // cross-origin / closed
+    }
+  }
+
+  let url: string;
+  try {
+    ({ url } = await api<{ url: string }>('/spotify/authorize', { method: 'POST' }));
+  } catch (err) {
+    popup?.close();
+    throw err;
+  }
+
+  if (popup && !popup.closed) {
+    popup.location.href = url;
+    popup.focus();
+  } else {
+    // Popup bloqueado: vai na mesma aba (usuário volta pelo histórico).
+    window.location.assign(url);
+    throw new Error('Abra o login do Spotify e autorize a conexão. Depois volte ao Much.');
+  }
 
   return new Promise<SpotifyAccount>((resolve, reject) => {
     const started = Date.now();
@@ -64,9 +90,27 @@ export async function connectSpotify(): Promise<SpotifyAccount> {
     const check = async () => {
       try {
         const next = await refreshSpotifyAccount();
-        if (next.linked) finish(next);
+        if (next.linked) {
+          try {
+            popup.close();
+          } catch {
+            // ignore
+          }
+          finish(next);
+        }
       } catch {
         // tenta de novo no próximo ciclo
+      }
+      if (popup.closed && Date.now() - started > 4000) {
+        // Usuário fechou sem conectar — confirma no servidor antes de desistir.
+        try {
+          const next = await refreshSpotifyAccount();
+          if (next.linked) finish(next);
+          else finish(new Error('Conexão com o Spotify cancelada'));
+        } catch {
+          finish(new Error('Conexão com o Spotify cancelada'));
+        }
+        return;
       }
       if (Date.now() - started > CONNECT_TIMEOUT_MS) finish(new Error('Tempo esgotado para conectar o Spotify'));
     };

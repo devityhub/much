@@ -66,6 +66,8 @@ export function authorizeUrl(state: string, redirectUri: string) {
     scope: SPOTIFY_SCOPES.join(' '),
     redirect_uri: redirectUri,
     state,
+    // Força a tela de login/autorização do Spotify (estilo Discord).
+    show_dialog: 'true',
   });
   return `${ACCOUNTS_URL}/authorize?${params}`;
 }
