@@ -74,11 +74,10 @@ export function isServerOwner(userId: number) {
 
 /**
  * Quem pode cadastrar as chaves do app Spotify.
- * Se ainda não tem app configurado, qualquer um pode (evita ficar preso na conta de teste).
- * Depois de configurado, só o dono troca/remove.
+ * Com chaves no .env, ninguém edita pela UI. Senão qualquer conta logada pode
+ * liberar/atualizar (self-host: evita ficar preso na conta de teste “alice”).
  */
-export function canConfigureSpotify(userId: number) {
+export function canConfigureSpotify(_userId: number) {
   if (spotifyFromEnv()) return false;
-  if (!spotifyConfigured()) return true;
-  return isServerOwner(userId);
+  return true;
 }
