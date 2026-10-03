@@ -39,7 +39,10 @@ const configSchema = z.object({ clientId: key('O Client ID'), clientSecret: key(
 
 function requireConfigured() {
   if (!spotifyConfigured()) {
-    throw new HttpError(503, 'O Spotify ainda não foi liberado neste servidor. Peça para quem hospeda o Much colocar as chaves no .env.');
+    throw new HttpError(
+      503,
+      'Falta liberar o Spotify neste Much (Client ID/Secret do app). Depois disso, Conectar abre o login da sua conta.',
+    );
   }
 }
 
