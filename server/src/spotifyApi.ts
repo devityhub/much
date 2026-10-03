@@ -52,7 +52,13 @@ async function tokenRequest(params: Record<string, string>): Promise<TokenRespon
   }
   const data = (await res.json().catch(() => ({}))) as TokenResponse;
   if (!res.ok) {
-    const err = new HttpError(res.status === 400 ? 400 : 502, data.error_description || 'O Spotify recusou a conexão');
+    const raw = (data.error_description || data.error || '').toLowerCase();
+    let message = data.error_description || 'O Spotify recusou a conexão';
+    if (raw.includes('invalid client') || raw.includes('invalid_client') || raw.includes('secret')) {
+      message =
+        'Client Secret inválido. No painel do Spotify clique em “Ver segredo do cliente”, copie o secret (não o Client ID) e cole de novo no Much.';
+    }
+    const err = new HttpError(res.status === 400 ? 400 : 502, message);
     (err as HttpError & { code?: string }).code = data.error;
     throw err;
   }
