@@ -12,7 +12,8 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss(), ...(https ? [basicSsl()] : [])],
     server: {
       port: 43123,
-      host: https ? true : '127.0.0.1',
+      host: true,
+      allowedHosts: true,
       proxy: {
         '/api': apiTarget,
         '/uploads': apiTarget,

@@ -64,7 +64,7 @@ if (fs.existsSync(config.clientDist)) {
 
 app.use(errorHandler);
 
-server.listen(config.port, () => {
+server.listen(config.port, '0.0.0.0', () => {
   const protocol = server instanceof https.Server ? 'https' : 'http';
-  console.log(`[much] servidor em ${protocol}://localhost:${config.port}`);
+  console.log(`[much] servidor em ${protocol}://0.0.0.0:${config.port}`);
 });
