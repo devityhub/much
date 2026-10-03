@@ -775,8 +775,17 @@ export class RoomClient {
     };
   }
 
+  private emitQueued = false;
+
+  /** Agrupa vários eventos WebRTC no mesmo tick para não inundar o React. */
   private emit() {
-    this.snapshot = this.buildSnapshot();
-    for (const listener of this.listeners) listener();
+    if (this.emitQueued) return;
+    this.emitQueued = true;
+    queueMicrotask(() => {
+      this.emitQueued = false;
+      if (this.destroyed) return;
+      this.snapshot = this.buildSnapshot();
+      for (const listener of this.listeners) listener();
+    });
   }
 }

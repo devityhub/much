@@ -398,30 +398,20 @@ function usePosition(anchor: Anchor, kind: 'self' | 'user') {
   return { ref, style };
 }
 
-function Popover({ anchor, kind, close, children }: { anchor: Anchor; kind: 'self' | 'user'; close: () => void; children: ReactNode }) {
+function PopoverPanel({ anchor, kind, children }: { anchor: Anchor; kind: 'self' | 'user'; children: ReactNode }) {
   const { ref, style } = usePosition(anchor, kind);
   return (
-    <>
-      <div
-        className="fixed inset-0 z-40"
-        onMouseDown={close}
-        onContextMenu={(e) => {
-          e.preventDefault();
-          close();
-        }}
-      />
-      <motion.div
-        ref={ref}
-        initial={{ opacity: 0, scale: 0.92, y: kind === 'self' ? 12 : 0, x: kind === 'user' ? -12 : 0 }}
-        animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: kind === 'self' ? 8 : 0 }}
-        transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-        style={{ ...style, width: WIDTH, transformOrigin: kind === 'self' ? 'bottom left' : 'left center' }}
-        className="fixed z-50 max-h-[calc(100vh-24px)] overflow-visible rounded-2xl border border-line shadow-2xl shadow-black/60"
-      >
-        {children}
-      </motion.div>
-    </>
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, scale: 0.92, y: kind === 'self' ? 12 : 0, x: kind === 'user' ? -12 : 0 }}
+      animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: kind === 'self' ? 8 : 0 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+      style={{ ...style, width: WIDTH, transformOrigin: kind === 'self' ? 'bottom left' : 'left center' }}
+      className="fixed z-50 max-h-[calc(100vh-24px)] overflow-visible rounded-2xl border border-line shadow-2xl shadow-black/60"
+    >
+      {children}
+    </motion.div>
   );
 }
 
@@ -438,12 +428,25 @@ export default function ProfilePopover() {
   const key = profile ? (profile.kind === 'self' ? 'self' : `user-${profile.user.id}`) : 'none';
 
   return (
-    <AnimatePresence>
+    <>
+      {/* Overlay fora do AnimatePresence: evita camada fixa residual bloqueando cliques. */}
       {profile && (
-        <Popover key={key} anchor={profile.anchor} kind={profile.kind} close={closeProfile}>
-          {profile.kind === 'self' ? <SelfContent close={closeProfile} /> : <UserContent seed={profile.user} close={closeProfile} />}
-        </Popover>
+        <div
+          className="fixed inset-0 z-40"
+          onMouseDown={closeProfile}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            closeProfile();
+          }}
+        />
       )}
-    </AnimatePresence>
+      <AnimatePresence>
+        {profile && (
+          <PopoverPanel key={key} anchor={profile.anchor} kind={profile.kind}>
+            {profile.kind === 'self' ? <SelfContent close={closeProfile} /> : <UserContent seed={profile.user} close={closeProfile} />}
+          </PopoverPanel>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

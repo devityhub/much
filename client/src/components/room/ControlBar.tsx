@@ -2,7 +2,7 @@ import { type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { Headphones, HeadphoneOff, Loader2, Mic, MicOff, MonitorOff, MonitorUp, PhoneOff, Settings, Video, VideoOff, VolumeX } from 'lucide-react';
 import { SpotifyLogo } from '../SpotifyBadge';
-import { useCall } from '../../context/call';
+import { useCall, useCallSnapshot } from '../../context/call';
 import { useUi } from '../../context/ui';
 import { canCaptureSpotify, desktop } from '../../lib/desktop';
 import { settingsStore, useSettings } from '../../lib/settings';
@@ -53,7 +53,8 @@ function ControlButton({
 }
 
 function SpotifyButton() {
-  const { snapshot, musicBusy, startMusic, stopMusic } = useCall();
+  const { musicBusy, startMusic, stopMusic } = useCall();
+  const snapshot = useCallSnapshot();
   const settings = useSettings();
   if (!snapshot) return null;
 
@@ -101,7 +102,8 @@ function SpotifyButton() {
 }
 
 export default function ControlBar() {
-  const { snapshot, busy, deafened, toggleMic, toggleCam, toggleDeafen, stopScreen, leave } = useCall();
+  const { busy, deafened, toggleMic, toggleCam, toggleDeafen, stopScreen, leave } = useCall();
+  const snapshot = useCallSnapshot();
   const { openSettings, setScreenShareOpen } = useUi();
   const media = snapshot?.media;
   if (!media) return null;

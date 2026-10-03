@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ExternalLink, Loader2, Music2, Pause, Play, Search, SkipBack, SkipForward, Square, Volume2, VolumeX, X } from 'lucide-react';
 import { Slider } from '../ui';
 import SpotifyBadge, { SpotifyLogo, SPOTIFY_GREEN } from '../SpotifyBadge';
-import { useCall } from '../../context/call';
+import { useCall, useCallSnapshot } from '../../context/call';
 import { useUserTrigger } from '../../context/ui';
 import { desktop } from '../../lib/desktop';
 import type { RoomMusicView } from '../../lib/roomClient';
@@ -17,7 +17,7 @@ function useMusicProgress(music: RoomMusicView | null) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (!music?.isPlaying) return;
-    const timer = window.setInterval(() => setNow(Date.now()), 500);
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, [music?.isPlaying]);
   if (!music?.track) return 0;
@@ -133,7 +133,8 @@ function TrackSearch({ onClose }: { onClose: () => void }) {
 
 /** Card "Tocando agora" no topo da chamada. */
 export default function MusicPanel() {
-  const { snapshot, stopMusic, spotifyControl } = useCall();
+  const { stopMusic, spotifyControl } = useCall();
+  const snapshot = useCallSnapshot();
   const trigger = useUserTrigger();
   const music = snapshot?.music ?? null;
   const progress = useMusicProgress(music);
@@ -244,7 +245,7 @@ export default function MusicPanel() {
 
 /** Versão compacta para o painel de voz da barra lateral. */
 export function MusicMini() {
-  const { snapshot } = useCall();
+  const snapshot = useCallSnapshot();
   const music = snapshot?.music ?? null;
   if (!snapshot || !music) return null;
   const isDj = music.djSocketId === snapshot.selfId;

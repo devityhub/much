@@ -9,7 +9,7 @@ import { Button, Segmented, Slider, Toggle } from '../ui';
 import { VideoView } from '../room/MediaView';
 import { DiscordAudioGuide } from '../room/ScreenShareDialog';
 import { useUi, type SettingsSection } from '../../context/ui';
-import { useCall } from '../../context/call';
+import { useCallSnapshot } from '../../context/call';
 import { useToast } from '../../context/toast';
 import { useMediaDevices } from '../../hooks/useMediaDevices';
 import { useAuth } from '../../lib/auth';
@@ -472,7 +472,7 @@ function AppearanceSection() {
 }
 
 function DesktopSection() {
-  const { snapshot } = useCall();
+  const snapshot = useCallSnapshot();
   if (desktop) {
     return (
       <div className="space-y-4">

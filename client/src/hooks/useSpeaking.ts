@@ -40,7 +40,7 @@ export function useSpeaking(stream: MediaStream | null | undefined): boolean {
         current = next;
         setSpeaking(next);
       }
-    }, 100);
+    }, 200);
 
     return () => {
       window.clearInterval(timer);

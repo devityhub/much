@@ -7,7 +7,7 @@ import ControlBar from './ControlBar';
 import MusicPanel from './MusicPanel';
 import ParticipantTile from './ParticipantTile';
 import ScreenStage, { LiveBadge, type ScreenSource } from './ScreenStage';
-import { useCall } from '../../context/call';
+import { useCall, useCallSnapshot } from '../../context/call';
 import { useFriends } from '../../context/friends';
 import { useUserTrigger } from '../../context/ui';
 import { useAuth } from '../../lib/auth';
@@ -49,7 +49,8 @@ function RingingView() {
 }
 
 export default function CallView() {
-  const { active, snapshot, ringing, deafened } = useCall();
+  const { active, ringing, deafened } = useCall();
+  const snapshot = useCallSnapshot();
   const { user } = useAuth();
   const settings = useSettings();
   const trigger = useUserTrigger();

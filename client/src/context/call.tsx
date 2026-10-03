@@ -45,7 +45,6 @@ interface IncomingCall {
 
 interface CallContextValue {
   active: ActiveCall | null;
-  snapshot: RoomSnapshot | null;
   ringing: boolean;
   /** O amigo estava offline quando você ligou: toca até ele entrar no Much. */
   ringingOffline: boolean;
@@ -410,10 +409,11 @@ export function CallProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => () => activeRef.current?.client.destroy(), []);
 
+  // Snapshot NÃO entra no contexto: cada emit WebRTC recriava o value e
+  // re-renderizava a sidebar inteira até a UI travar.
   const value = useMemo<CallContextValue>(
     () => ({
       active,
-      snapshot,
       ringing,
       ringingOffline,
       incoming,
@@ -443,7 +443,6 @@ export function CallProvider({ children }: { children: ReactNode }) {
       spotifyControl,
       playTrack,
       active,
-      snapshot,
       ringing,
       ringingOffline,
       incoming,
@@ -470,4 +469,10 @@ export function useCall() {
   const ctx = useContext(CallContext);
   if (!ctx) throw new Error('useCall precisa estar dentro de CallProvider');
   return ctx;
+}
+
+/** Só quem precisa do áudio/vídeo da chamada — não puxa re-render na sidebar. */
+export function useCallSnapshot(): RoomSnapshot | null {
+  const { active } = useCall();
+  return useSyncExternalStore(active ? active.client.subscribe : noopSubscribe, active ? active.client.getSnapshot : nullSnapshot);
 }

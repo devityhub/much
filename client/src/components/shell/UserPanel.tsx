@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { Headphones, HeadphoneOff, Mic, MicOff, Settings } from 'lucide-react';
 import Avatar from '../Avatar';
-import { useCall } from '../../context/call';
+import { useCall, useCallSnapshot } from '../../context/call';
 import { anchorOf, useUi } from '../../context/ui';
 import { useAuth } from '../../lib/auth';
 import { displayName, PRESENCE_INFO, visiblePresence } from '../../lib/users';
@@ -24,7 +24,8 @@ function IconButton({ label, onClick, danger = false, disabled = false, children
 
 export default function UserPanel() {
   const { user } = useAuth();
-  const { active, snapshot, deafened, busy, toggleMic, toggleDeafen } = useCall();
+  const { active, deafened, busy, toggleMic, toggleDeafen } = useCall();
+  const snapshot = useCallSnapshot();
   const { openSettings, openProfile, closeProfile, profile } = useUi();
   if (!user) return null;
 

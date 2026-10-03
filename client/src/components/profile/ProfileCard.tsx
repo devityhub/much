@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { CalendarDays, Maximize2, Plus, Quote, X } from 'lucide-react';
 import Avatar from '../Avatar';
 import SpotifyBadge from '../SpotifyBadge';
-import { useCall } from '../../context/call';
+import { useCallSnapshot } from '../../context/call';
 import { coverBackground } from '../../lib/theme';
 import { displayName, presenceLabel } from '../../lib/users';
 import type { PublicUser, VisiblePresence } from '../../lib/types';
@@ -122,7 +122,7 @@ export default function ProfileCard({
   bg = 'var(--color-surface-1)',
   rounded = true,
 }: ProfileCardProps) {
-  const { snapshot } = useCall();
+  const snapshot = useCallSnapshot();
   // Anel mais escuro que o cartão: assim a borda do avatar aparece inteira, tanto sobre o banner quanto sobre o fundo.
   const ring = 'var(--color-bg)';
   const since = user.createdAt ? new Date(user.createdAt.replace(' ', 'T') + 'Z') : null;

@@ -18,7 +18,7 @@ function useProgress(listening: ProfileListening) {
 
   useEffect(() => {
     if (!listening.isPlaying) return;
-    const timer = window.setInterval(() => setNow(Date.now()), 500);
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, [listening]);
 

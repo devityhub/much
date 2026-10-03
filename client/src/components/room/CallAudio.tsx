@@ -1,4 +1,4 @@
-import { useCall } from '../../context/call';
+import { useCall, useCallSnapshot } from '../../context/call';
 import { useFriends } from '../../context/friends';
 import { useSettings } from '../../lib/settings';
 import { useVolume } from '../../lib/volumes';
@@ -28,7 +28,8 @@ function PeerAudio({ peer, sinkId, master, muted }: { peer: PeerView; sinkId: st
 
 /** Fica montado no layout do app para o som continuar ao trocar de página. */
 export default function CallAudio() {
-  const { snapshot, deafened } = useCall();
+  const { deafened } = useCall();
+  const snapshot = useCallSnapshot();
   const settings = useSettings();
   if (!snapshot) return null;
   return (

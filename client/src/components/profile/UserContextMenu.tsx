@@ -4,7 +4,7 @@ import { Ban, Check, Clock, Copy, MessageCircle, Pencil, Phone, User, UserMinus,
 import Avatar from '../Avatar';
 import { Slider } from '../ui';
 import { useUserActions } from './useUserActions';
-import { useCall } from '../../context/call';
+import { useCallSnapshot } from '../../context/call';
 import { useUi, type UserMenuTarget } from '../../context/ui';
 import { displayName } from '../../lib/users';
 import { volumeStore, useVolume } from '../../lib/volumes';
@@ -47,7 +47,7 @@ function Menu({ target, close }: { target: UserMenuTarget; close: () => void }) 
   const { user } = target;
   const actions = useUserActions(user);
   const { openFullProfile } = useUi();
-  const { snapshot } = useCall();
+  const snapshot = useCallSnapshot();
   const ref = useRef<HTMLDivElement>(null);
   const [style, setStyle] = useState<CSSProperties>({ left: target.x, top: target.y, visibility: 'hidden' });
   const inSameCall = Boolean(snapshot?.peers.some((p) => p.user.id === user.id));
@@ -138,21 +138,21 @@ export default function UserContextMenu() {
   }, [userMenu, closeUserMenu]);
 
   return (
-    <AnimatePresence>
+    <>
+      {/* Overlay fora do AnimatePresence: evita “fantasma” fixo que bloqueia cliques até o F5. */}
       {userMenu && (
-        <>
-          <div
-            key="overlay"
-            className="fixed inset-0 z-[54]"
-            onMouseDown={closeUserMenu}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              closeUserMenu();
-            }}
-          />
-          <Menu key={`menu-${userMenu.user.id}-${userMenu.x}-${userMenu.y}`} target={userMenu} close={closeUserMenu} />
-        </>
+        <div
+          className="fixed inset-0 z-[54]"
+          onMouseDown={closeUserMenu}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            closeUserMenu();
+          }}
+        />
       )}
-    </AnimatePresence>
+      <AnimatePresence>
+        {userMenu && <Menu key={`menu-${userMenu.user.id}-${userMenu.x}-${userMenu.y}`} target={userMenu} close={closeUserMenu} />}
+      </AnimatePresence>
+    </>
   );
 }

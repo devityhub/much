@@ -94,8 +94,7 @@ function FriendRow({ friend }: { friend: Friend }) {
       : activityLabel(friend, song);
 
   return (
-    <motion.div
-      layout
+    <div
       className={`group flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors ${
         inCallWith || viewing ? 'bg-surface-4' : 'hover:bg-surface-3'
       } ${friend.online || unread || viewing ? '' : 'opacity-50 hover:opacity-100'}`}
@@ -130,7 +129,7 @@ function FriendRow({ friend }: { friend: Friend }) {
           <Phone size={16} />
         </button>
       )}
-    </motion.div>
+    </div>
   );
 }
 
@@ -156,10 +155,7 @@ function GroupRow({ group }: { group: Group }) {
         : `${group.members.length} membros`;
 
   return (
-    <motion.div
-      layout
-      className={`group flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors ${inCall || viewing ? 'bg-surface-4' : 'hover:bg-surface-3'}`}
-    >
+    <div className={`group flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors ${inCall || viewing ? 'bg-surface-4' : 'hover:bg-surface-3'}`}>
       <button onClick={() => navigate(`/app/group/${group.id}`)} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
         <GroupIcon group={group} meId={user?.id} size={32} ring={inCall || viewing ? 'var(--color-surface-4)' : 'var(--color-surface-1)'} />
         <span className="min-w-0">
@@ -189,7 +185,7 @@ function GroupRow({ group }: { group: Group }) {
           <Phone size={16} />
         </button>
       )}
-    </motion.div>
+    </div>
   );
 }
 

@@ -1,9 +1,7 @@
-import { useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Compass, Megaphone, MicOff, MonitorUp, Pencil, Plus, Trash2, Video, Volume2 } from 'lucide-react';
 import RoomIcon from '../../components/RoomIcon';
 import SpotifyBadge, { SpotifyLogo, SPOTIFY_GREEN } from '../../components/SpotifyBadge';
-import { useSpeaking } from '../../hooks/useSpeaking';
 import { displayName } from '../../lib/users';
 import Avatar from '../../components/Avatar';
 import Spinner from '../../components/Spinner';
@@ -17,8 +15,7 @@ import { useAuth } from '../../lib/auth';
 import { coverBackground } from '../../lib/theme';
 import type { Room, RoomMember } from '../../lib/types';
 
-function MemberChip({ member, stream }: { member: RoomMember; stream: MediaStream | null }) {
-  const speaking = useSpeaking(member.mic ? stream : null);
+function MemberChip({ member }: { member: RoomMember }) {
   const trigger = useUserTrigger()(member.user);
   return (
     <button
@@ -26,8 +23,8 @@ function MemberChip({ member, stream }: { member: RoomMember; stream: MediaStrea
       {...trigger}
       className="flex items-center gap-2 rounded-lg bg-surface-3 py-1 pr-2 pl-1 text-xs transition-colors hover:bg-surface-4"
     >
-      <Avatar nick={member.user.nick} avatar={member.user.avatar} image={member.user.avatarImage} size={20} speaking={speaking} />
-      <span className={`max-w-24 truncate ${speaking ? 'text-white' : 'text-muted'}`}>{displayName(member.user)}</span>
+      <Avatar nick={member.user.nick} avatar={member.user.avatar} image={member.user.avatarImage} size={20} />
+      <span className="max-w-24 truncate text-muted">{displayName(member.user)}</span>
       {member.music && <SpotifyBadge size={12} label={`${displayName(member.user)} está tocando música do Spotify`} />}
       {member.cam && <Video size={12} className="text-muted" />}
       {member.screen && <MonitorUp size={12} className="text-accent" />}
@@ -37,7 +34,7 @@ function MemberChip({ member, stream }: { member: RoomMember; stream: MediaStrea
 }
 
 function RoomCard({ room }: { room: Room }) {
-  const { active, joinRoom, snapshot } = useCall();
+  const { active, joinRoom } = useCall();
   const { deleteRoom, updateRoom } = useRooms();
   const { setEditingRoom } = useUi();
   const trigger = useUserTrigger();
@@ -45,24 +42,11 @@ function RoomCard({ room }: { room: Room }) {
   const toast = useToast();
   const current = active?.roomId === room.id;
   const full = room.live.participants >= room.maxParticipants;
-  const streams = useMemo(() => {
-    const map = new Map<string, MediaStream | null>();
-    if (!current || !snapshot) return map;
-    if (snapshot.selfId) map.set(snapshot.selfId, snapshot.local.mic);
-    for (const peer of snapshot.peers) map.set(peer.socketId, peer.micStream);
-    return map;
-  }, [current, snapshot]);
 
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-line bg-surface-1 shadow-lg shadow-black/20 transition hover:-translate-y-1 hover:border-white/10">
       <div className="relative h-32 overflow-hidden" style={{ background: coverBackground(room.cover, room.coverImage) }}>
-        {!room.coverImage && (
-          <motion.div
-            className="soft-glow absolute -top-16 -right-16 h-52 w-52 bg-white/15"
-            animate={{ x: [0, -20, 0], y: [0, 15, 0] }}
-            transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
-          />
-        )}
+        {!room.coverImage && <div className="soft-glow absolute -top-16 -right-16 h-52 w-52 bg-white/15" />}
         <div className="absolute inset-0 bg-linear-to-t from-surface-1 via-transparent to-transparent" />
         <div className="absolute top-3 left-3 flex gap-2">
           {room.live.streaming && <LiveBadge />}
@@ -117,7 +101,7 @@ function RoomCard({ room }: { room: Room }) {
         {room.description && <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted">{room.description}</p>}
         <div className="mt-3 flex min-h-[28px] flex-wrap gap-1.5">
           {room.live.members.map((m) => (
-            <MemberChip key={m.socketId} member={m} stream={streams.get(m.socketId) ?? null} />
+            <MemberChip key={m.socketId} member={m} />
           ))}
           {!room.live.members.length && <span className="self-center text-xs text-faint">Ninguém aqui ainda</span>}
         </div>

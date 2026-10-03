@@ -9,7 +9,10 @@ const inflight = new Map<number, Promise<UserProfile>>();
 export function peekProfile(id: number): UserProfile | null {
   const hit = cache.get(id);
   if (!hit) return null;
-  if (Date.now() - hit.at > TTL_MS) return null;
+  if (Date.now() - hit.at > TTL_MS) {
+    cache.delete(id);
+    return null;
+  }
   return hit.profile;
 }
 

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { MonitorOff, MonitorUp, PhoneOff, Signal, Video, VideoOff } from 'lucide-react';
-import { useCall } from '../../context/call';
+import { useCall, useCallSnapshot } from '../../context/call';
 import { useUi } from '../../context/ui';
 import { MusicMini } from '../room/MusicPanel';
 
@@ -23,7 +23,8 @@ function PanelButton({ label, onClick, active = false, children }: { label: stri
 }
 
 export default function VoicePanel() {
-  const { active, snapshot, ringing, busy, leave, toggleCam, stopScreen } = useCall();
+  const { active, ringing, busy, leave, toggleCam, stopScreen } = useCall();
+  const snapshot = useCallSnapshot();
   const { setScreenShareOpen } = useUi();
   const navigate = useNavigate();
   const media = snapshot?.media;
