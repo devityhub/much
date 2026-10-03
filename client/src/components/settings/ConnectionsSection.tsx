@@ -72,7 +72,10 @@ function SpotifySetup({ account, onDone }: { account: SpotifyAccount; onDone: ()
         </Step>
 
         <Step n={2} title="Cole este endereço em “Redirect URIs”">
-          <p className="mt-0.5 text-sm text-muted">Tem que ser igualzinho, senão o Spotify recusa o login. Marque também a opção “Web API”.</p>
+          <p className="mt-0.5 text-sm text-muted">
+            Tem que ser idêntico (copie o campo abaixo). Em Settings do app, marque “Web API”. Se o link do Much mudar, atualize este URI no painel do
+            Spotify.
+          </p>
           <div className="mt-2 flex gap-2">
             <input readOnly value={account.redirectUri} onFocus={(e) => e.currentTarget.select()} className="input font-mono text-xs" />
             <Button variant="secondary" onClick={copyRedirect} className="shrink-0">
@@ -146,11 +149,11 @@ export default function ConnectionsSection() {
                 {account.premium ? ' · Premium' : ' · Free'}
               </p>
             ) : account.configured ? (
-              <p className="text-sm text-muted">Conecte para mostrar o que você ouve no perfil e tocar música nas salas.</p>
+              <p className="text-sm text-muted">Conecte sua conta para aparecer “Conectado” e compartilhar música nas salas.</p>
             ) : account.canConfigure ? (
-              <p className="text-sm text-muted">Falta cadastrar o app do Spotify deste servidor. São três passos:</p>
+              <p className="text-sm text-muted">Primeiro cadastre o app do Spotify (3 passos abaixo). Depois é só conectar a conta.</p>
             ) : (
-              <p className="text-sm text-muted">O dono do servidor ainda não configurou o Spotify.</p>
+              <p className="text-sm text-muted">Alguém ainda precisa cadastrar o app do Spotify em Conexões.</p>
             )}
           </div>
           {account?.configured &&
@@ -160,7 +163,7 @@ export default function ConnectionsSection() {
               </Button>
             ) : (
               <Button disabled={busy} onClick={() => void run(connectSpotify, 'Spotify conectado!')}>
-                {busy && <Loader2 size={16} className="animate-spin" />} Conectar
+                {busy && <Loader2 size={16} className="animate-spin" />} Conectar a conta
               </Button>
             ))}
         </div>
@@ -189,18 +192,20 @@ export default function ConnectionsSection() {
 
         <ul className="space-y-2 border-t border-line p-5 text-sm text-muted">
           <li>
-            • Com a conta ligada, a música que você está ouvindo aparece no seu perfil e na lista dos seus amigos, trocando sozinha a cada faixa. É
-            só vitrine: o Much nunca manda comandos para o seu Spotify, e ninguém controla o que você ouve.
+            • <span className="font-semibold text-white/80">1.</span> Cadastre o app (se ainda não tiver) →{' '}
+            <span className="font-semibold text-white/80">2.</span> Clique em <span className="font-semibold text-white/80">Conectar a conta</span> e
+            faça login no Spotify → aparece <span className="font-semibold text-ok">Conectado</span>.
           </li>
-          <li>• Só seus amigos veem. Para esconder na hora, fique invisível no menu do seu nome ou desconecte a conta aqui.</li>
-          <li>• Clique no botão do Spotify na barra da chamada para virar o DJ: todos da sala ouvem o que toca no seu Spotify.</li>
-          <li>• Só o DJ controla a música (pausar, pular, buscar). Os outros podem mutar ou baixar o volume.</li>
-          <li>• No app desktop do Much (Windows 10 2004 ou 11), o DJ só precisa do app do Spotify aberto no PC.</li>
           <li>
-            • No Chrome ou no Edge, o DJ abre o open.spotify.com em outra aba e escolhe essa aba com "Compartilhar áudio da aba" ligado. Se a aba
-            ficar muda, use o app desktop.
+            • <span className="font-semibold text-white/80">3.</span> Na sala/chamada, clique no botão verde do Spotify para compartilhar: todos
+            escutam o que toca no seu Spotify.
           </li>
-          <li>• Pausar, pular e buscar por aqui precisam de Spotify Premium. Com conta Free, controle direto no Spotify.</li>
+          <li>
+            • No Chrome/Edge: abra <span className="font-mono text-xs text-white/70">open.spotify.com</span> em outra aba e, no seletor, escolha essa
+            aba com “Compartilhar áudio da aba” ligado.
+          </li>
+          <li>• Só o DJ controla (pausar/pular/buscar — Premium). Os outros mutam ou baixam o volume.</li>
+          <li>• A música que você ouve também aparece no perfil para amigos (só vitrine).</li>
         </ul>
         {account?.fromEnv && (
           <p className="flex items-center gap-2 border-t border-line px-5 py-3 text-sm text-faint">

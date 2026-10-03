@@ -55,28 +55,24 @@ export default function ParticipantTile({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-      className={`group relative flex aspect-video items-center justify-center rounded-2xl bg-surface-3 ${
+      className={`group relative flex aspect-video items-center justify-center overflow-hidden rounded-2xl bg-surface-3 ${
         compact ? 'w-44 shrink-0' : ''
-      } ${speaking && !blocked ? 'shadow-[0_0_0_2px_#23a559]' : music ? 'shadow-[0_0_0_2px_rgba(29,185,84,0.55)]' : 'shadow-[0_0_0_2px_transparent]'}`}
+      } ${music ? 'ring-2 ring-[#1db954]/60' : 'ring-2 ring-transparent'}`}
     >
-      {/* Clip só da mídia — o anel de fala fica no avatar/tile sem ser cortado. */}
-      <div className="absolute inset-0 overflow-hidden rounded-2xl">
-        {showCam ? (
-          <VideoView stream={camStream!} mirror={mirror} className="h-full w-full object-cover" />
-        ) : (
+      {showCam ? (
+        <VideoView stream={camStream!} mirror={mirror} className="h-full w-full object-cover" />
+      ) : (
+        <>
           <div className="absolute inset-0 opacity-25" style={{ background: avatarGradient(user.avatar) }} />
-        )}
-      </div>
-
-      {!showCam && (
-        <button
-          type="button"
-          onClick={trigger.onClick}
-          aria-label={`Ver perfil de ${user.nick}`}
-          className={`relative z-10 rounded-full p-1 ${blocked ? 'opacity-40 grayscale' : ''}`}
-        >
-          <Avatar nick={user.nick} avatar={user.avatar} image={user.avatarImage} size={compact ? 44 : 84} speaking={speaking && !blocked} />
-        </button>
+          <button
+            type="button"
+            onClick={trigger.onClick}
+            aria-label={`Ver perfil de ${user.nick}`}
+            className={`relative z-10 rounded-full ${blocked ? 'opacity-40 grayscale' : ''} ${speaking && !blocked ? 'brightness-110' : ''}`}
+          >
+            <Avatar nick={user.nick} avatar={user.avatar} image={user.avatarImage} size={compact ? 44 : 84} />
+          </button>
+        </>
       )}
 
       {blocked && (

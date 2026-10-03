@@ -20,6 +20,8 @@ import { usersRouter } from './users';
 
 const app = express();
 app.disable('x-powered-by');
+// Túnel/proxy (Cloudflare etc.): req.protocol e host precisam refletir o HTTPS público.
+app.set('trust proxy', true);
 app.use(cors({ origin: config.corsOrigin }));
 app.use(express.json({ limit: '100kb' }));
 

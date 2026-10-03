@@ -7,8 +7,8 @@ import { asyncHandler, HttpError } from './http';
 import { music } from './music';
 import { authorizeUrl, linkAccount, searchTracks, spotifyFetch } from './spotifyApi';
 import {
+  canConfigureSpotify,
   clearSpotifyCredentials,
-  isServerOwner,
   redirectUriFor,
   saveSpotifyCredentials,
   spotifyConfigured,
@@ -41,10 +41,10 @@ function requireConfigured() {
   if (!spotifyConfigured()) throw new HttpError(503, 'O Spotify não está configurado neste servidor');
 }
 
-/** Mexer nas chaves muda o Spotify de todo mundo na instância, então fica só com o dono. */
-function requireOwner(res: Response) {
+/** Mexer nas chaves muda o Spotify de todo mundo na instância. */
+function requireConfigurator(res: Response) {
   const me = currentUser(res);
-  if (!isServerOwner(me.id)) throw new HttpError(403, 'Só o dono do servidor pode configurar o Spotify');
+  if (!canConfigureSpotify(me.id)) throw new HttpError(403, 'Você não pode configurar o Spotify neste servidor');
   if (spotifyFromEnv()) throw new HttpError(409, 'As chaves do Spotify vêm do .env deste servidor');
   return me;
 }
@@ -110,15 +110,14 @@ spotifyRouter.get('/me', (req, res) => {
     linked: Boolean(account),
     name: account?.display_name ?? null,
     premium: account?.product === 'premium',
-    // Para o dono montar o app no painel do Spotify sem sair do Much.
-    canConfigure: isServerOwner(me.id) && !spotifyFromEnv(),
+    canConfigure: canConfigureSpotify(me.id),
     fromEnv: spotifyFromEnv(),
     redirectUri: redirectUriFor(req),
   });
 });
 
 spotifyRouter.put('/config', (req, res) => {
-  requireOwner(res);
+  requireConfigurator(res);
   const { clientId, clientSecret } = configSchema.parse(req.body);
   saveSpotifyCredentials(clientId, clientSecret);
   spotifyPresence.unwatchAll();
@@ -126,7 +125,7 @@ spotifyRouter.put('/config', (req, res) => {
 });
 
 spotifyRouter.delete('/config', (_req, res) => {
-  requireOwner(res);
+  requireConfigurator(res);
   clearSpotifyCredentials();
   spotifyPresence.unwatchAll();
   res.status(204).end();

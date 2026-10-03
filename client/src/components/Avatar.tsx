@@ -10,6 +10,7 @@ interface AvatarProps {
   image?: string | null;
   size?: number;
   status?: Status;
+  /** Mantido por compatibilidade; o anel verde de fala foi removido do ícone. */
   speaking?: boolean;
   statusBg?: string;
   className?: string;
@@ -49,25 +50,15 @@ export default function Avatar({
   image,
   size = 32,
   status,
-  speaking = false,
   statusBg = 'var(--color-surface-1)',
   className = '',
 }: AvatarProps) {
   // Avatares grandes pedem uma bolinha proporcionalmente menor, senão ela cobre o rosto.
   const dot = Math.max(10, Math.round(size * (size > 48 ? 0.22 : 0.3)));
-  const ring = Math.max(2, Math.round(size * 0.08));
   const [failed, setFailed] = useState<string | null>(null);
   const showImage = image && failed !== image;
   return (
     <div className={`relative shrink-0 ${className}`} style={{ width: size, height: size }}>
-      {/* Anel verde estilo Discord: fica fora do círculo, sem animação que estoura o container. */}
-      {speaking && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute rounded-full ring-[#23a559]"
-          style={{ inset: -ring, boxShadow: `0 0 0 ${ring}px #23a559` }}
-        />
-      )}
       <div
         className="flex h-full w-full items-center justify-center overflow-hidden rounded-full font-semibold text-white uppercase select-none"
         style={{ background: avatarGradient(avatar), fontSize: size * 0.42 }}

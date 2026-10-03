@@ -60,12 +60,25 @@ export function clearSpotifyCredentials() {
  */
 export function redirectUriFor(req: Request) {
   if (config.spotify.redirectUri) return config.spotify.redirectUri;
-  const host = (req.get('host') ?? `127.0.0.1:${config.port}`).replace(/^localhost(?=$|:)/, '127.0.0.1');
-  const proto = req.protocol === 'https' ? 'https' : 'http';
+  const forwardedHost = req.get('x-forwarded-host')?.split(',')[0]?.trim();
+  const host = (forwardedHost || req.get('host') || `127.0.0.1:${config.port}`).replace(/^localhost(?=$|:)/, '127.0.0.1');
+  const forwardedProto = req.get('x-forwarded-proto')?.split(',')[0]?.trim();
+  const proto = forwardedProto === 'https' || req.protocol === 'https' ? 'https' : 'http';
   return `${proto}://${host}/api/spotify/callback`;
 }
 
-/** Só o dono do servidor mexe nas chaves: elas valem para todo mundo que usa a instância. */
+/** Dono = primeira conta do banco (legado). */
 export function isServerOwner(userId: number) {
   return queries.firstUserId.get()?.id === userId;
+}
+
+/**
+ * Quem pode cadastrar as chaves do app Spotify.
+ * Se ainda não tem app configurado, qualquer um pode (evita ficar preso na conta de teste).
+ * Depois de configurado, só o dono troca/remove.
+ */
+export function canConfigureSpotify(userId: number) {
+  if (spotifyFromEnv()) return false;
+  if (!spotifyConfigured()) return true;
+  return isServerOwner(userId);
 }
