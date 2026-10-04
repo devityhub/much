@@ -1,10 +1,10 @@
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { Check, MessageCircle, Phone, Search, UserMinus, UserPlus, Users, X } from 'lucide-react';
+import { Check, ChevronRight, Compass, MessageCircle, Phone, Search, UserMinus, Users, X } from 'lucide-react';
 import Avatar from '../../components/Avatar';
-import { Button } from '../../components/ui';
 import { useCall } from '../../context/call';
+import { useDms } from '../../context/dms';
 import { useFriends } from '../../context/friends';
 import { useToast } from '../../context/toast';
 import { useUserTrigger } from '../../context/ui';
@@ -40,23 +40,51 @@ function RowAction({ label, onClick, tone = 'default', children }: { label: stri
   );
 }
 
+function FriendMascot() {
+  return (
+    <svg width="104" height="96" viewBox="0 0 104 96" aria-hidden className="shrink-0">
+      <ellipse cx="50" cy="90" rx="24" ry="4.5" fill="#000" opacity="0.32" />
+      <path d="M48 10c0-6 8-10 12-4 2 3-1 6-4 6" fill="#4ade80" />
+      <path d="M56 12c3-6 11-5 12 1 1 4-4 6-7 4" fill="#86efac" />
+      <ellipse cx="50" cy="52" rx="28" ry="30" fill="#7c3aed" />
+      <ellipse cx="50" cy="56" rx="21" ry="20" fill="#8b5cf6" />
+      <circle cx="40" cy="46" r="5" fill="#0c0d11" />
+      <circle cx="60" cy="46" r="5" fill="#0c0d11" />
+      <circle cx="41.6" cy="44.4" r="1.6" fill="#fff" />
+      <circle cx="61.6" cy="44.4" r="1.6" fill="#fff" />
+      <path d="M42 64c5 6 12 6 18 0" fill="none" stroke="#0c0d11" strokeWidth="2.6" strokeLinecap="round" />
+      <path d="M76 44c10-2 18 6 16 16-1 6-7 10-13 8" fill="#6d28d9" />
+      <circle cx="90" cy="64" r="6.5" fill="#c4b5fd" />
+      <path d="M88 61.5c2 0 3.4 1.4 3.4 3" fill="none" stroke="#4c1d95" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function AddFriend() {
   const { sendRequest } = useFriends();
+  const { send } = useDms();
   const toast = useToast();
+  const navigate = useNavigate();
   const [nick, setNick] = useState('');
+  const [note, setNote] = useState('');
   const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    const who = nick.trim();
+    if (!who) return;
     setBusy(true);
     setStatus(null);
     try {
-      const result = await sendRequest(nick.trim());
-      const message = result === 'accepted' ? `Agora você e ${nick} são amigos!` : `Pedido enviado para ${nick}.`;
+      const result = await sendRequest(who);
+      const message = result.status === 'accepted' ? `Agora você e ${who} são amigos!` : `Pedido enviado para ${who}.`;
+      const extra = note.trim();
+      if (extra) await send(result.user.id, extra).catch(() => undefined);
       setStatus({ ok: true, message });
       toast(message, 'success');
       setNick('');
+      setNote('');
     } catch (err) {
       setStatus({ ok: false, message: (err as Error).message });
     } finally {
@@ -64,44 +92,83 @@ function AddFriend() {
     }
   };
 
+  const border = status && !status.ok ? 'border-danger' : status?.ok ? 'border-ok' : 'border-white/10';
+
   return (
-    <div className="max-w-2xl">
-      <h2 className="font-display text-xl font-semibold">Adicionar amigo</h2>
-      <p className="mt-1 text-sm text-muted">Digite o nick exato da pessoa. Quando ela aceitar, vocês podem se ligar.</p>
-      <form
-        onSubmit={submit}
-        className={`mt-4 flex items-center gap-2 rounded-2xl border bg-surface-1 p-2 pl-4 transition-colors ${
-          status && !status.ok ? 'border-danger' : status?.ok ? 'border-ok' : 'border-line focus-within:border-accent'
-        }`}
-      >
-        <UserPlus size={18} className="text-muted" />
-        <input
-          value={nick}
-          onChange={(e) => setNick(e.target.value)}
-          placeholder="nick_do_amigo"
-          className="flex-1 bg-transparent py-2 text-[15px] outline-none placeholder:text-faint"
-          maxLength={20}
-          autoFocus
-        />
-        <Button type="submit" disabled={!nick.trim() || busy}>
-          Enviar pedido
-        </Button>
+    <div className="relative px-8 pt-6 pb-10">
+      <div className="pointer-events-none absolute top-2 right-8 hidden sm:block">
+        <FriendMascot />
+      </div>
+
+      <h2 className="text-xl font-semibold tracking-tight">Adicionar amigo</h2>
+      <p className="mt-1 text-sm text-muted">Você pode adicionar amigos com o nick deles no PassTime.</p>
+
+      <form onSubmit={(e) => void submit(e)} className={`mt-5 overflow-hidden rounded-xl border ${border}`}>
+        <div className="flex items-center gap-3 px-4 py-3">
+          <input
+            value={nick}
+            onChange={(e) => {
+              setNick(e.target.value);
+              if (status) setStatus(null);
+            }}
+            placeholder="Insira um nome de usuário"
+            className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-faint"
+            maxLength={20}
+            autoComplete="off"
+            autoFocus
+          />
+          <button
+            type="submit"
+            disabled={!nick.trim() || busy}
+            className="h-8 shrink-0 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:bg-accent/40 disabled:opacity-70"
+          >
+            {busy ? 'Enviando...' : 'Enviar pedido de amizade'}
+          </button>
+        </div>
+        <div className="border-t border-white/8 px-4 pt-2.5 pb-2">
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value.slice(0, 120))}
+            placeholder="Personalize sua solicitação (opcional)"
+            rows={2}
+            maxLength={120}
+            className="w-full resize-none bg-transparent text-[15px] leading-6 outline-none placeholder:text-faint"
+          />
+          <p className="text-right text-xs tabular-nums text-faint">{120 - note.length}</p>
+        </div>
       </form>
+      <p className="mt-2 text-xs text-faint">
+        O que você escrever aqui também aparece nas mensagens diretas se vocês se tornarem amigos.
+      </p>
       <AnimatePresence>
         {status && (
-          <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={`mt-2 text-sm ${status.ok ? 'text-ok' : 'text-danger'}`}>
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className={`mt-3 text-sm ${status.ok ? 'text-ok' : 'text-danger'}`}
+          >
             {status.message}
           </motion.p>
         )}
       </AnimatePresence>
 
-      <div className="mt-16 flex flex-col items-center text-center text-muted">
-        <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }} className="mb-4 flex -space-x-4">
-          {['red', 'blue', 'green'].map((color, i) => (
-            <Avatar key={color} nick={['M', 'U', 'C'][i]} avatar={color} size={56} className="ring-4 ring-bg rounded-full" />
-          ))}
-        </motion.div>
-        <p className="text-sm">Chame a galera para o PassTime e transmitam juntos.</p>
+      <div className="mt-8 border-t border-line pt-6">
+        <h3 className="text-xl font-semibold tracking-tight">Outros lugares para fazer amigos</h3>
+        <p className="mt-1 max-w-3xl text-sm text-muted">
+          Ninguém vem à cabeça? Confira nossa lista de salas públicas: jogos, filmes, música, anime e muito mais.
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate('/app/explore')}
+          className="mt-4 flex w-full max-w-[440px] items-center gap-3 rounded-xl border border-white/10 px-3 py-2.5 text-left transition hover:bg-white/3"
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-ok text-black">
+            <Compass size={18} />
+          </span>
+          <span className="flex-1 font-medium">Explorar salas públicas</span>
+          <ChevronRight size={18} className="text-muted" />
+        </button>
       </div>
     </div>
   );
@@ -198,36 +265,41 @@ export default function FriendsPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b border-line px-5">
-        <Users size={20} className="text-muted" />
-        <span className="mr-3 font-semibold">Amigos</span>
-        <div className="h-6 w-px bg-line" />
+      <header className="flex h-12 shrink-0 items-center gap-1 border-b border-line px-4">
+        <Users size={18} className="text-muted" />
+        <span className="mr-2 font-semibold">Amigos</span>
+        <div className="mx-2 h-5 w-px bg-line" />
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`relative flex items-center gap-1.5 rounded-lg px-3 py-1 text-[15px] font-medium transition-colors ${
-              tab === t.id ? 'text-white' : 'text-muted hover:text-white'
+            className={`relative flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-medium transition-colors ${
+              tab === t.id ? 'bg-white/6 text-white' : 'text-muted hover:bg-white/4 hover:text-white'
             }`}
           >
-            {tab === t.id && <motion.span layoutId="friends-tab" className="absolute inset-0 rounded-lg bg-surface-4" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
-            <span className="relative">{t.label}</span>
-            {Boolean(t.badge) && <span className="relative rounded-full bg-danger px-1.5 text-xs font-bold">{t.badge}</span>}
+            <span>{t.label}</span>
+            {Boolean(t.badge) && <span className="rounded-full bg-danger px-1.5 text-[11px] font-bold leading-4">{t.badge}</span>}
           </button>
         ))}
         <button
           onClick={() => setTab('add')}
-          className={`ml-2 rounded-lg px-3 py-1 text-[15px] font-semibold transition ${tab === 'add' ? 'text-ok' : 'bg-ok text-black hover:brightness-110'}`}
+          className={`ml-1 rounded-md px-2.5 py-1 text-sm font-semibold transition ${
+            tab === 'add' ? 'bg-accent text-white' : 'bg-ok text-black hover:brightness-110'
+          }`}
         >
           Adicionar amigo
         </button>
       </header>
 
       <div className="flex min-h-0 flex-1">
-        <div className="min-w-0 flex-1 overflow-y-auto p-6">
-          {tab === 'add' ? (
+        {tab === 'add' ? (
+          <div className="min-w-0 flex-1 overflow-y-auto">
             <AddFriend />
-          ) : tab === 'pending' ? (
+          </div>
+        ) : (
+          <>
+        <div className="min-w-0 flex-1 overflow-y-auto p-6">
+          {tab === 'pending' ? (
             <div>
               <p className="mb-3 text-xs font-bold tracking-wider text-muted uppercase">Pendentes — {incoming.length + outgoing.length}</p>
               <AnimatePresence initial={false}>
@@ -323,6 +395,8 @@ export default function FriendsPage() {
           )}
         </div>
         <ActiveNow friends={friends} />
+          </>
+        )}
       </div>
     </div>
   );

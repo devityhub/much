@@ -16,7 +16,7 @@ interface FriendsData {
 
 interface FriendsContextValue extends FriendsData {
   loading: boolean;
-  sendRequest: (nick: string) => Promise<'pending' | 'accepted'>;
+  sendRequest: (nick: string) => Promise<{ status: 'pending' | 'accepted'; user: PublicUser }>;
   accept: (requestId: number) => Promise<void>;
   decline: (requestId: number) => Promise<void>;
   removeFriend: (userId: number) => Promise<void>;
@@ -79,9 +79,9 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
   const sendRequest = useCallback(
     async (nick: string) => {
-      const { status } = await api<{ status: 'pending' | 'accepted' }>('/friends/requests', { method: 'POST', body: { nick } });
+      const result = await api<{ status: 'pending' | 'accepted'; user: PublicUser }>('/friends/requests', { method: 'POST', body: { nick } });
       await reload();
-      return status;
+      return result;
     },
     [reload],
   );
