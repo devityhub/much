@@ -8,7 +8,8 @@ import { AVATAR_CROP, BANNER_CROP, DropZone, useImagePicker } from '../media/Ima
 import { Button } from '../ui';
 import { useToast } from '../../context/toast';
 import { useAuth } from '../../lib/auth';
-import { AVATARS, COVERS, coverBackground } from '../../lib/theme';
+import CoverPhoto from '../CoverPhoto';
+import { AVATARS, COVERS } from '../../lib/theme';
 import { visiblePresence } from '../../lib/users';
 import type { SelfUser } from '../../lib/types';
 
@@ -175,10 +176,10 @@ export default function ProfileSection() {
               type="button"
               onClick={bannerPicker.open}
               className="group relative flex aspect-[3/1] w-full items-center justify-center overflow-hidden rounded-2xl border border-line"
-              style={{ background: coverBackground(draft.banner, draft.bannerImage) }}
               aria-label="Escolher imagem do banner"
             >
-              <span className="flex items-center gap-2 rounded-xl bg-black/55 px-4 py-2 text-sm font-semibold opacity-0 backdrop-blur transition group-hover:opacity-100">
+              <CoverPhoto cover={draft.banner} image={draft.bannerImage} className="absolute inset-0" />
+              <span className="relative z-10 flex items-center gap-2 rounded-xl bg-black/55 px-4 py-2 text-sm font-semibold opacity-0 backdrop-blur transition group-hover:opacity-100">
                 <ImagePlus size={16} /> {draft.bannerImage ? 'Trocar imagem' : 'Enviar imagem'}
               </span>
               {bannerPicker.uploading && (

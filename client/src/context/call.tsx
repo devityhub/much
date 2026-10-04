@@ -19,6 +19,7 @@ import { sounds, startRingtone } from '../lib/sounds';
 import { useAuth } from '../lib/auth';
 import { notify } from '../lib/notify';
 import type { PublicUser } from '../lib/types';
+import { refreshSpotifyAccount } from '../lib/spotify';
 import { displayName } from '../lib/users';
 import { useToast } from './toast';
 
@@ -275,6 +276,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
     if (!call) return;
     setMusicBusy(true);
     try {
+      const acc = await refreshSpotifyAccount();
+      if (!acc.linked) throw new Error('Conecte o Spotify em Configurações > Conexões para compartilhar o que você está ouvindo');
       await call.client.startMusic();
     } catch (err) {
       toast((err as Error).message, 'error');

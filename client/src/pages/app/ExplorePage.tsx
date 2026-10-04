@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { Compass, Megaphone, MicOff, MonitorUp, Pencil, Plus, Trash2, Video, Volume2 } from 'lucide-react';
+import CoverPhoto from '../../components/CoverPhoto';
 import RoomIcon from '../../components/RoomIcon';
 import SpotifyBadge, { SpotifyLogo, SPOTIFY_GREEN } from '../../components/SpotifyBadge';
 import { displayName } from '../../lib/users';
@@ -12,7 +13,6 @@ import { useRooms } from '../../context/rooms';
 import { useToast } from '../../context/toast';
 import { useUi, useUserTrigger } from '../../context/ui';
 import { useAuth } from '../../lib/auth';
-import { coverBackground } from '../../lib/theme';
 import type { Room, RoomMember } from '../../lib/types';
 
 function MemberChip({ member }: { member: RoomMember }) {
@@ -45,7 +45,7 @@ function RoomCard({ room }: { room: Room }) {
 
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-line bg-surface-1 shadow-lg shadow-black/20 transition hover:-translate-y-1 hover:border-white/10">
-      <div className="relative h-32 overflow-hidden" style={{ background: coverBackground(room.cover, room.coverImage) }}>
+      <CoverPhoto cover={room.cover} image={room.coverImage} className="h-32">
         {!room.coverImage && <div className="soft-glow absolute -top-16 -right-16 h-52 w-52 bg-white/15" />}
         <div className="absolute inset-0 bg-linear-to-t from-surface-1 via-transparent to-transparent" />
         <div className="absolute top-3 left-3 flex gap-2">
@@ -86,7 +86,7 @@ function RoomCard({ room }: { room: Room }) {
             </button>
           </div>
         )}
-      </div>
+      </CoverPhoto>
       <div className="relative px-4 pb-4">
         <div className="-mt-8 mb-2 inline-block rounded-[22px] bg-surface-1 p-1">
           <RoomIcon name={room.name} cover={room.cover} image={room.iconImage} size={56} />

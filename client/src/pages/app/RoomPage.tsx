@@ -9,9 +9,9 @@ import { useCall } from '../../context/call';
 import { useRooms } from '../../context/rooms';
 import { useUserTrigger } from '../../context/ui';
 import { displayName } from '../../lib/users';
+import CoverPhoto from '../../components/CoverPhoto';
 import RoomIcon from '../../components/RoomIcon';
 import SpotifyBadge from '../../components/SpotifyBadge';
-import { coverBackground } from '../../lib/theme';
 
 export default function RoomPage() {
   const { roomId = '' } = useParams();
@@ -41,13 +41,13 @@ export default function RoomPage() {
 
   return (
     <div className="relative flex h-full items-center justify-center overflow-hidden">
-      <div className="absolute inset-0 scale-110 opacity-25 blur-3xl" style={{ background: coverBackground(room.cover, room.coverImage) }} />
+      <CoverPhoto cover={room.cover} image={room.coverImage} className="pointer-events-none absolute inset-0 scale-110 opacity-25 blur-3xl" />
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="relative w-full max-w-md overflow-hidden rounded-3xl border border-line bg-surface-1/95 text-center"
       >
-        <div className="h-28" style={{ background: coverBackground(room.cover, room.coverImage) }} />
+        <CoverPhoto cover={room.cover} image={room.coverImage} className="h-28" />
         <div className="px-8 pb-8">
           <div className="-mt-12 mb-4 inline-block rounded-[30px] bg-surface-1 p-1.5">
             <RoomIcon name={room.name} cover={room.cover} image={room.iconImage} size={84} />

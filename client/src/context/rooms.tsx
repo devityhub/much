@@ -38,10 +38,10 @@ export function RoomsProvider({ children }: { children: ReactNode }) {
   const reload = useCallback(async () => {
     if (timer.current != null) window.clearTimeout(timer.current);
     await new Promise<void>((resolve) => {
-      timer.current = window.setTimeout(() => {
-        timer.current = null;
-        void reloadNow().finally(resolve);
-      }, 80);
+        timer.current = window.setTimeout(() => {
+          timer.current = null;
+          void reloadNow().finally(resolve);
+        }, 220);
     });
   }, [reloadNow]);
 

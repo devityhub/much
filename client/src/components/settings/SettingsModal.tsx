@@ -13,11 +13,11 @@ import { useCallSnapshot } from '../../context/call';
 import { useToast } from '../../context/toast';
 import { useMediaDevices } from '../../hooks/useMediaDevices';
 import { useAuth } from '../../lib/auth';
+import CoverPhoto from '../CoverPhoto';
 import { desktop } from '../../lib/desktop';
 import { liteReason, setMotionMode, useMotionMode, type MotionMode } from '../../lib/performance';
 import { mediaErrorMessage } from '../../lib/mediaErrors';
 import { cameraConstraints, DEFAULT_SETTINGS, micConstraints, settingsStore, useSettings, type Settings } from '../../lib/settings';
-import { coverBackground } from '../../lib/theme';
 import { displayName, PRESENCE_INFO, visiblePresence } from '../../lib/users';
 import type { Presence } from '../../lib/types';
 
@@ -576,7 +576,7 @@ function AccountSection() {
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-2xl border border-line bg-surface-2">
-        <div className="h-28" style={{ background: coverBackground(user.banner, user.bannerImage) }} />
+        <CoverPhoto cover={user.banner} image={user.bannerImage} className="h-28" />
         <div className="flex items-end gap-4 px-5 pb-5">
           <div className="-mt-10 rounded-full bg-bg p-1.5 ring-1 ring-white/10">
             <Avatar nick={user.nick} avatar={user.avatar} image={user.avatarImage} size={84} status={visiblePresence(user.presence)} statusBg="var(--color-bg)" />

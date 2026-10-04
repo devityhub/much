@@ -4,9 +4,7 @@ import { Headphones, HeadphoneOff, Loader2, Mic, MicOff, MonitorOff, MonitorUp, 
 import { SpotifyLogo } from '../SpotifyBadge';
 import { useCall, useCallSnapshot } from '../../context/call';
 import { useUi } from '../../context/ui';
-import { canCaptureSpotify, desktop } from '../../lib/desktop';
 import { settingsStore, useSettings } from '../../lib/settings';
-import { canCaptureTab } from '../../lib/tabAudio';
 import { displayName } from '../../lib/users';
 
 function ControlButton({
@@ -35,20 +33,19 @@ function ControlButton({
           ? 'bg-white text-black hover:bg-white/85'
           : 'bg-surface-4 text-white hover:bg-surface-5';
   return (
-    <motion.button
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.9 }}
+    <button
+      type="button"
       onClick={onClick}
       disabled={disabled}
       title={label}
       aria-label={label}
-      className={`group relative flex h-12 w-12 items-center justify-center rounded-2xl transition-colors disabled:opacity-50 ${color}`}
+      className={`group relative flex h-12 w-12 items-center justify-center rounded-2xl transition-[transform,background-color,filter] select-none hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:hover:translate-y-0 ${color}`}
     >
       {children}
       <span className="pointer-events-none absolute -top-9 rounded-md bg-black/90 px-2 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 transition group-hover:opacity-100">
         {label}
       </span>
-    </motion.button>
+    </button>
   );
 }
 
@@ -76,27 +73,19 @@ function SpotifyButton() {
 
   if (isDj) {
     return (
-      <ControlButton tone="spotify" label="Parar a música para a sala" onClick={stopMusic}>
+      <ControlButton tone="spotify" label="Parar de compartilhar a música" onClick={stopMusic}>
         <SpotifyLogo size={22} color="#000" />
       </ControlButton>
     );
   }
 
-  const blocked = desktop
-    ? canCaptureSpotify
-      ? null
-      : 'Atualize o app desktop para tocar Spotify'
-    : canCaptureTab
-      ? null
-      : 'Tocar Spotify na sala: use o Chrome, o Edge ou o app desktop';
-
   return (
     <ControlButton
-      label={blocked ?? (desktop ? 'Tocar música do Spotify para a sala' : 'Tocar a aba do Spotify para a sala')}
+      label="Compartilhar o que estou ouvindo"
       onClick={() => void startMusic()}
-      disabled={Boolean(blocked) || musicBusy}
+      disabled={musicBusy}
     >
-      {musicBusy ? <Loader2 size={20} className="animate-spin" /> : <SpotifyLogo size={22} color={blocked ? '#9097a6' : undefined} />}
+      {musicBusy ? <Loader2 size={20} className="animate-spin" /> : <SpotifyLogo size={22} />}
     </ControlButton>
   );
 }

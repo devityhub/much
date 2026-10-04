@@ -55,7 +55,10 @@ const registerSchema = z.object({
 });
 
 const loginSchema = z.object({
-  login: z.string({ required_error: 'Informe seu nick ou email' }).trim().min(1, 'Informe seu nick ou email'),
+  login: z
+    .string({ required_error: 'Informe o e-mail cadastrado' })
+    .trim()
+    .email('Informe o e-mail cadastrado'),
   password: z.string({ required_error: 'Informe sua senha' }).min(1, 'Informe sua senha'),
 });
 
@@ -126,9 +129,9 @@ authRouter.post(
   '/login',
   asyncHandler(async (req, res) => {
     const data = loginSchema.parse(req.body);
-    const user = queries.userByLogin.get(data.login, data.login);
+    const user = queries.userByEmail.get(data.login);
     const ok = user ? await bcrypt.compare(data.password, user.password_hash) : false;
-    if (!user || !ok) throw new HttpError(401, 'Nick/email ou senha incorretos');
+    if (!user || !ok) throw new HttpError(401, 'E-mail ou senha incorretos');
     res.json({ token: signToken(user.id), user: toSelfUser(user) });
   }),
 );

@@ -26,6 +26,13 @@ const PLAYER_ACTIONS: Record<string, { method: 'PUT' | 'POST'; path: string }> =
 };
 
 const playSchema = z.object({ uri: z.string().regex(/^spotify:track:[A-Za-z0-9]{22}$/, 'Música inválida') });
+const alongSchema = z.union([
+  z.object({ pause: z.literal(true) }),
+  z.object({
+    uri: z.string().regex(/^spotify:track:[A-Za-z0-9]{22}$/, 'Música inválida'),
+    positionMs: z.number().int().min(0).max(3_600_000).optional(),
+  }),
+]);
 const searchSchema = z.object({ q: z.string().trim().min(1, 'Digite o que procurar').max(100) });
 
 /** Client ID e Client Secret do painel do Spotify: 32 caracteres hexadecimais. */
@@ -233,6 +240,25 @@ spotifyRouter.post(
     const { uri } = playSchema.parse(req.body);
     await spotifyFetch(me.id, '/me/player/play', { method: 'PUT', body: { uris: [uri] } });
     music.refreshSoon(roomId);
+    res.json({ ok: true });
+  }),
+);
+
+spotifyRouter.post(
+  '/along',
+  asyncHandler(async (req, res) => {
+    requireConfigured();
+    const me = currentUser(res);
+    if (!queries.spotifyAccount.get(me.id)) throw new HttpError(409, 'Conecte o Spotify primeiro');
+    const data = alongSchema.parse(req.body);
+    if ('pause' in data) {
+      await spotifyFetch(me.id, '/me/player/pause', { method: 'PUT' });
+    } else {
+      await spotifyFetch(me.id, '/me/player/play', {
+        method: 'PUT',
+        body: { uris: [data.uri], position_ms: data.positionMs ?? 0 },
+      });
+    }
     res.json({ ok: true });
   }),
 );

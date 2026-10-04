@@ -250,7 +250,9 @@ export function setupSignaling(io: Server) {
       const reply: Ack = typeof ack === 'function' ? ack : () => undefined;
       const roomId = socket.data.roomId;
       if (!roomId) return reply({ ok: false, error: 'Entre numa sala ou chamada primeiro' });
-      // Só reserva o slot de DJ — o áudio vem da aba/app do Spotify do usuário, sem OAuth.
+      if (!queries.spotifyAccount.get(socket.data.user.id)) {
+        return reply({ ok: false, error: 'Conecte o Spotify em Configurações > Conexões para compartilhar o que você está ouvindo' });
+      }
       const result = music.start(roomId, socket.id, socket.data.user);
       if (!result.ok) return reply(result);
       reply({ ok: true, music: result.music });

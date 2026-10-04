@@ -45,9 +45,10 @@ export default function Login() {
           <div className="space-y-4">
             <AuthError error={error} />
             <div>
-              <AuthLabel required>E-mail ou nick</AuthLabel>
+              <AuthLabel required>E-mail</AuthLabel>
               <AuthInput
-                autoComplete="username"
+                type="email"
+                autoComplete="email"
                 value={form.login}
                 onChange={(e) => setForm({ ...form, login: e.target.value })}
                 required
@@ -68,7 +69,7 @@ export default function Login() {
               </AuthLink>
               {hint && (
                 <p className="mt-2 text-xs leading-relaxed text-muted">
-                  Por enquanto o PassTime não reabre a conta sozinho. Tente o nick se o e-mail não funcionar. Se travar de vez,
+                  Por enquanto o PassTime não reabre a conta sozinho. Use o e-mail com que você se cadastrou. Se travar de vez,
                   fale com quem administra este servidor.
                 </p>
               )}

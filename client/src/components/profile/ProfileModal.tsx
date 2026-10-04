@@ -35,7 +35,7 @@ import { useToast } from '../../context/toast';
 import { useUi } from '../../context/ui';
 import { listeningStore, useListening } from '../../lib/listening';
 import { fetchProfile, peekProfile } from '../../lib/profileCache';
-import { coverBackground } from '../../lib/theme';
+import CoverPhoto from '../CoverPhoto';
 import { displayName, presenceLabel } from '../../lib/users';
 import type { PublicUser, Room, UserProfile, VisiblePresence } from '../../lib/types';
 
@@ -372,7 +372,7 @@ function Content({ seed, close }: { seed: PublicUser; close: () => void }) {
 
   return (
     <>
-      <div className="relative h-36 shrink-0 overflow-hidden" style={{ background: coverBackground(user.banner, user.bannerImage) }}>
+      <CoverPhoto cover={user.banner} image={user.bannerImage} className="h-36 shrink-0">
         {!user.bannerImage && (
           <>
             <motion.div
@@ -401,7 +401,7 @@ function Content({ seed, close }: { seed: PublicUser; close: () => void }) {
         >
           <X size={18} />
         </button>
-      </div>
+      </CoverPhoto>
 
       {/* `relative` mantém o avatar acima do banner, que é um elemento posicionado. */}
       <div className="relative flex flex-wrap items-end gap-x-4 gap-y-3 px-6">

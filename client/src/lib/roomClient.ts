@@ -11,7 +11,6 @@ import {
   type Settings,
 } from './settings';
 import { startSystemAudio, type SystemAudioHandle } from './systemAudio';
-import { canCaptureTab, captureSpotifyTab } from './tabAudio';
 import type { MediaState, Participant, PublicUser, RoomMusic } from './types';
 
 type TrackKey = 'mic' | 'cam' | 'screenVideo' | 'screenAudio' | 'music';
@@ -325,37 +324,34 @@ export class RoomClient {
   }
 
   /**
-   * Vira o DJ: o servidor reserva a sala e o app desktop captura só o Spotify.
-   * No navegador, o DJ compartilha a aba do open.spotify.com.
+   * Vira o DJ: mostra o que está tocando e manda o áudio na call.
+   * No app desktop captura o Spotify do PC. No navegador, quem tem Spotify ouve no próprio app.
    */
   async startMusic() {
-    if (this.destroyed || this.musicCapture) return;
-    if (desktop && !canCaptureSpotify) throw new Error('Atualize o app desktop do PassTime para tocar música do Spotify');
-    if (!desktop && !canCaptureTab) throw new Error('Para tocar Spotify pelo navegador, use o Chrome ou o Edge no computador');
+    if (this.destroyed || this.musicCapture || this.music?.djSocketId === this.selfId) return;
 
     const onStatus = (status: SystemAudioStatus) => this.onMusicCaptureStatus(status);
-    this.musicCaptureState = { active: true, sources: [], error: null };
+    this.musicCaptureState = { active: true, sources: ['Spotify'], error: null };
     this.emit();
     let handle: SystemAudioHandle | null = null;
     let reserved = false;
     try {
-      // O navegador só abre o seletor de aba durante o clique, então ele vem antes de falar com o servidor.
-      if (!desktop) handle = await captureSpotifyTab(onStatus);
-
       const reply = await this.request('music:start');
       if (!reply.ok) throw new Error(reply.error);
       reserved = true;
       if (reply.music) this.setRoomMusic(reply.music);
 
-      handle ??= await startSystemAudio(onStatus, 'spotify');
-      if (this.destroyed || this.music?.djSocketId !== this.selfId) {
-        handle.stop();
-        this.musicCaptureState = IDLE_CAPTURE;
-        this.emit();
-        return;
+      if (desktop && canCaptureSpotify) {
+        handle = await startSystemAudio(onStatus, 'spotify');
+        if (this.destroyed || this.music?.djSocketId !== this.selfId) {
+          handle.stop();
+          this.musicCaptureState = IDLE_CAPTURE;
+          this.emit();
+          return;
+        }
+        this.musicCapture = handle;
+        this.setTrack('music', handle.track);
       }
-      this.musicCapture = handle;
-      this.setTrack('music', handle.track);
       this.publishMedia();
     } catch (err) {
       handle?.stop();

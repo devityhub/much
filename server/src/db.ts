@@ -274,6 +274,7 @@ export function toSelfUser(row: UserRow) {
 
 export const queries = {
   userById: db.prepare<[number], UserRow>('SELECT * FROM users WHERE id = ?'),
+  userByEmail: db.prepare<[string], UserRow>('SELECT * FROM users WHERE email = ?'),
   userByLogin: db.prepare<[string, string], UserRow>('SELECT * FROM users WHERE nick = ? OR email = ?'),
   userByNickOrEmail: db.prepare<[string, string], Pick<UserRow, 'nick' | 'email'>>(
     'SELECT nick, email FROM users WHERE nick = ? OR email = ?',

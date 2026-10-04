@@ -1,10 +1,10 @@
 import { motion } from 'motion/react';
 import { LogIn, Megaphone, Users } from 'lucide-react';
+import CoverPhoto from '../CoverPhoto';
 import RoomIcon from '../RoomIcon';
 import { LiveBadge } from './ScreenStage';
 import { SpotifyLogo, SPOTIFY_GREEN } from '../SpotifyBadge';
 import { useCall } from '../../context/call';
-import { coverBackground } from '../../lib/theme';
 import type { Room } from '../../lib/types';
 
 /** A propaganda da sala no perfil do dono: banner, ícone, nome, descrição e um atalho para entrar. */
@@ -15,7 +15,7 @@ export default function RoomPromo({ room, ring = 'var(--color-surface-2)' }: { r
 
   return (
     <div className="overflow-hidden rounded-xl border border-line bg-black/25">
-      <div className="relative h-20 overflow-hidden" style={{ background: coverBackground(room.cover, room.coverImage) }}>
+      <CoverPhoto cover={room.cover} image={room.coverImage} className="h-20">
         {!room.coverImage && (
           <motion.div
             className="soft-glow absolute -top-14 -right-12 h-40 w-40 bg-white/20"
@@ -35,7 +35,7 @@ export default function RoomPromo({ room, ring = 'var(--color-surface-2)' }: { r
         <span className="absolute top-2 right-2 flex items-center gap-1 rounded-md bg-black/55 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white/90 uppercase backdrop-blur">
           <Megaphone size={10} /> divulgando
         </span>
-      </div>
+      </CoverPhoto>
 
       {/* `relative` tira o conteúdo de baixo do banner, que é posicionado e cobriria o ícone. */}
       <div className="relative px-3 pb-3">

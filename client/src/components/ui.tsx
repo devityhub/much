@@ -21,14 +21,13 @@ const SIZES = { sm: 'px-3 py-1.5 text-sm', md: 'px-4 py-2.5 text-sm', lg: 'px-6 
 
 export function Button({ variant = 'primary', size = 'md', type = 'button', className = '', children, ...rest }: ButtonProps) {
   return (
-    <motion.button
+    <button
       type={type}
-      whileTap={{ scale: 0.96 }}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition disabled:pointer-events-none disabled:opacity-50 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition select-none active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
       {...rest}
     >
       {children}
-    </motion.button>
+    </button>
   );
 }
 

@@ -5,7 +5,7 @@ import Avatar from '../Avatar';
 import SpotifyBadge, { SpotifyLogo } from '../SpotifyBadge';
 import { useCallSnapshot } from '../../context/call';
 import { useListening } from '../../lib/listening';
-import { coverBackground } from '../../lib/theme';
+import CoverPhoto from '../CoverPhoto';
 import { displayName, presenceLabel } from '../../lib/users';
 import type { PublicUser, VisiblePresence } from '../../lib/types';
 
@@ -140,7 +140,7 @@ export default function ProfileCard({
 
   return (
     <div className={`overflow-hidden ${rounded ? 'rounded-2xl' : ''}`} style={{ background: bg }}>
-      <div className="relative h-[120px] overflow-hidden" style={{ background: coverBackground(user.banner, user.bannerImage) }}>
+      <CoverPhoto cover={user.banner} image={user.bannerImage} className="h-[120px]">
         {!user.bannerImage && (
           <>
             <motion.div
@@ -158,7 +158,7 @@ export default function ProfileCard({
         <Sheen />
         <span className="absolute inset-x-0 top-0 h-px bg-white/15" />
         <span className="absolute inset-x-0 bottom-0 h-20" style={{ background: `linear-gradient(to top, ${bg} 10%, transparent)` }} />
-      </div>
+      </CoverPhoto>
 
       {/* `relative` tira o conteúdo de baixo do banner: sem isso o degradê do banner cobre o anel do avatar. */}
       <div className="relative px-4 pb-4">

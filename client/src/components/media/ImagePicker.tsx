@@ -185,13 +185,20 @@ export function useImagePicker(spec: CropSpec, onUploaded: (url: string) => void
       callback.current(preview);
       try {
         const url = await uploadImage(blob);
+        await new Promise<void>((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+          img.src = url;
+        });
         callback.current(url);
+        window.setTimeout(() => URL.revokeObjectURL(preview), 2500);
         if (blob.type === 'image/gif') toast('GIF enviado inteiro para continuar animado', 'success');
       } catch (err) {
         callback.current('');
+        URL.revokeObjectURL(preview);
         toast((err as Error).message, 'error');
       } finally {
-        URL.revokeObjectURL(preview);
         setUploading(false);
       }
     },

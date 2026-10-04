@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Camera, ImagePlus, Trash2 } from 'lucide-react';
+import CoverPhoto from './CoverPhoto';
 import Modal from './Modal';
 import RoomIcon from './RoomIcon';
 import Spinner from './Spinner';
@@ -8,7 +9,6 @@ import { Button, Toggle } from './ui';
 import { useCall } from '../context/call';
 import { useRooms } from '../context/rooms';
 import { useToast } from '../context/toast';
-import { coverBackground } from '../lib/theme';
 import type { Room } from '../lib/types';
 
 /** Cria uma sala nova ou, com `room`, edita uma sala existente (só o dono). */
@@ -58,13 +58,14 @@ export default function CreateRoomModal({ room, onClose }: { room?: Room | null;
     >
       <form onSubmit={submit} className="space-y-5">
         <DropZone onFile={coverPicker.handleFile} className="rounded-xl">
-          <div
+          <CoverPhoto
+            cover={cover}
+            image={coverImage}
             role="button"
             tabIndex={0}
             onClick={coverPicker.open}
             onKeyDown={(e) => e.key === 'Enter' && coverPicker.open()}
-            className="group relative flex aspect-[21/9] cursor-pointer items-end overflow-hidden rounded-xl p-4"
-            style={{ background: coverBackground(cover, coverImage) }}
+            className="group flex aspect-[21/9] cursor-pointer items-end rounded-xl p-4"
             aria-label="Escolher capa da sala"
           >
             <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
@@ -98,7 +99,7 @@ export default function CreateRoomModal({ room, onClose }: { room?: Room | null;
                 <Spinner />
               </span>
             )}
-          </div>
+          </CoverPhoto>
         </DropZone>
         {coverPicker.element}
         {iconPicker.element}

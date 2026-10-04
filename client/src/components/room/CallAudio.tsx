@@ -1,5 +1,6 @@
 import { useCall, useCallSnapshot } from '../../context/call';
 import { useFriends } from '../../context/friends';
+import { useListenAlong } from '../../lib/listenAlong';
 import { useSettings } from '../../lib/settings';
 import { useVolume } from '../../lib/volumes';
 import type { PeerView } from '../../lib/roomClient';
@@ -31,6 +32,7 @@ export default function CallAudio() {
   const { deafened } = useCall();
   const snapshot = useCallSnapshot();
   const settings = useSettings();
+  useListenAlong(snapshot, deafened);
   if (!snapshot) return null;
   return (
     <>

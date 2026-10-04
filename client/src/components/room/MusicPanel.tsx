@@ -149,7 +149,6 @@ export default function MusicPanel() {
 
   return (
     <motion.div
-      layout
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
@@ -230,9 +229,13 @@ export default function MusicPanel() {
 
         {spotifyMissing && (
           <p className="mt-2 rounded-lg bg-warn/15 px-2.5 py-1.5 text-xs text-warn">
-            {desktop
-              ? 'Não achamos o Spotify tocando no seu PC. Abra o app do Spotify (não o site) e dê play para a sala ouvir.'
-              : 'A aba compartilhada está sem som. Confira se escolheu a aba do open.spotify.com com "Compartilhar áudio da aba" ligado. Se continuar mudo, o Spotify bloqueou a captura neste navegador: use o app desktop do PassTime.'}
+            Não achamos o Spotify tocando no seu PC. Abra o app do Spotify e dê play para o áudio entrar na call.
+          </p>
+        )}
+        {isDj && !desktop && (
+          <p className="mt-2 text-xs text-muted">
+            Quem está na call e tem Spotify Premium ouve no próprio app. No app desktop do PassTime o áudio também entra na
+            chamada, sem escolher aba.
           </p>
         )}
         {music.error && <p className="mt-2 rounded-lg bg-danger/15 px-2.5 py-1.5 text-xs text-danger">{music.error}</p>}
