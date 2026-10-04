@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AnimatePresence } from 'motion/react';
 import { Phone, PhoneIncoming, PhoneMissed, PhoneOutgoing, UserRound, Video } from 'lucide-react';
 import Avatar from '../../components/Avatar';
+import { SpotifyLogo } from '../../components/SpotifyBadge';
 import Spinner from '../../components/Spinner';
 import AddPeopleButton from '../../components/chat/AddPeopleButton';
 import ChatView, { EventLine, formatCallDuration, type Jump } from '../../components/chat/ChatView';
@@ -67,7 +68,10 @@ function DmHeader({
         <Avatar nick={friend.user.nick} avatar={friend.user.avatar} image={friend.user.avatarImage} size={28} status={friend.presence} statusBg="var(--color-bg)" />
         <span className="min-w-0">
           <span className="block truncate leading-tight font-semibold">{name}</span>
-          <span className={`block truncate text-xs ${song ? 'text-[#1db954]' : 'text-faint'}`}>{activityLabel(friend, song)}</span>
+          <span className={`flex items-center gap-1 truncate text-xs ${song ? 'text-[#1db954]' : 'text-faint'}`}>
+            {song && <SpotifyLogo size={10} className="shrink-0" />}
+            <span className="truncate">{activityLabel(friend, song)}</span>
+          </span>
         </span>
       </button>
       <div className="ml-auto flex shrink-0 items-center gap-1.5">

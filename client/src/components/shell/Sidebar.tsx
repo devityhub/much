@@ -5,6 +5,7 @@ import { Compass, Inbox, Phone, Users, Volume2 } from 'lucide-react';
 import Avatar from '../Avatar';
 import GroupIcon from '../GroupIcon';
 import Logo from '../Logo';
+import { SpotifyLogo } from '../SpotifyBadge';
 import VoicePanel from './VoicePanel';
 import UserPanel from './UserPanel';
 import { useCall } from '../../context/call';
@@ -108,11 +109,12 @@ function FriendRow({ friend }: { friend: Friend }) {
         <span className="min-w-0">
           <span className={`block truncate text-[15px] ${unread ? 'font-bold text-white' : 'font-medium'}`}>{displayName(friend.user)}</span>
           <span
-            className={`block truncate text-xs ${
+            className={`flex items-center gap-1 truncate text-xs ${
               unread ? 'text-white/70' : typing[friend.user.id] ? 'text-ok' : song ? 'text-[#1db954]' : 'text-faint'
             }`}
           >
-            {subtitle}
+            {song && !unread && !typing[friend.user.id] && <SpotifyLogo size={10} className="shrink-0" />}
+            <span className="truncate">{subtitle}</span>
           </span>
         </span>
       </button>

@@ -37,7 +37,7 @@ function set(userId: number, next: ProfileListening | null) {
     ) {
       return;
     }
-    listening.set(userId, next);
+    listening.set(userId, { ...next, receivedAt: Date.now() });
   }
   emit();
 }

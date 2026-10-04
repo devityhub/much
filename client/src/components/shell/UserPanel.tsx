@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
-import { Headphones, HeadphoneOff, Mic, MicOff, Settings } from 'lucide-react';
+import { ExternalLink, Headphones, HeadphoneOff, Mic, MicOff, Settings } from 'lucide-react';
 import Avatar from '../Avatar';
 import { SpotifyLogo } from '../SpotifyBadge';
 import { useCall, useCallSnapshot } from '../../context/call';
 import { anchorOf, useUi } from '../../context/ui';
 import { useAuth } from '../../lib/auth';
+import { Cover } from '../profile/NowPlaying';
 import { useListening } from '../../lib/listening';
 import { displayName, PRESENCE_INFO, visiblePresence } from '../../lib/users';
 
@@ -34,20 +35,39 @@ export default function UserPanel() {
 
   const micOn = Boolean(snapshot?.media.mic);
   const open = profile?.kind === 'self';
-  const song = listening?.track
-    ? `${listening.isPlaying ? 'Ouvindo' : 'Pausado'} ${listening.track.name}`
-    : null;
-  const subtitle = active ? 'Em chamada' : song || user.customStatus || PRESENCE_INFO[user.presence].label;
+  const track = listening?.track ?? null;
+  const song = track ? `${listening?.isPlaying ? 'Ouvindo' : 'Pausado'} ${track.name}` : null;
+  const subtitle = active ? 'Em chamada' : user.customStatus || PRESENCE_INFO[user.presence].label;
 
   return (
-    <div className="flex items-center gap-1 border-t border-line bg-surface-2/60 px-2 py-2">
+    <div className="border-t border-line bg-surface-2/60">
+      {track && (
+        <a
+          href={track.url || 'https://open.spotify.com'}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-2 px-3 pt-2.5 pb-1.5 text-left transition hover:bg-surface-3"
+          title="Abrir no Spotify"
+        >
+          <Cover track={track} size={32} />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-xs font-semibold">{track.name}</span>
+            <span className="flex items-center gap-1 truncate text-[11px] text-[#1db954]">
+              <SpotifyLogo size={10} />
+              {listening?.isPlaying ? 'Ouvindo no Spotify' : 'Pausado no Spotify'}
+            </span>
+          </span>
+          <ExternalLink size={12} className="shrink-0 text-faint" />
+        </a>
+      )}
+      <div className="flex items-center gap-1 px-2 py-2">
       <button
         onClick={(e) => (open ? closeProfile() : openProfile({ kind: 'self', anchor: anchorOf(e.currentTarget) }))}
         className={`flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-1.5 py-1 text-left transition ${open ? 'bg-surface-4' : 'hover:bg-surface-4'}`}
       >
         <span className="relative shrink-0">
           <Avatar nick={user.nick} avatar={user.avatar} image={user.avatarImage} size={34} status={visiblePresence(user.presence)} statusBg="var(--color-surface-2)" />
-          {listening?.track && (
+          {track && (
             <span className="absolute -right-0.5 -bottom-0.5">
               <SpotifyLogo size={12} />
             </span>
@@ -55,7 +75,7 @@ export default function UserPanel() {
         </span>
         <span className="min-w-0">
           <span className="block truncate text-sm font-semibold">{displayName(user)}</span>
-          <span className={`block truncate text-xs ${song ? 'text-[#1db954]' : 'text-faint'}`}>{subtitle}</span>
+          <span className={`block truncate text-xs ${song && !active ? 'text-[#1db954]' : 'text-faint'}`}>{subtitle}</span>
         </span>
       </button>
       <IconButton
@@ -74,6 +94,7 @@ export default function UserPanel() {
           <Settings size={18} />
         </motion.span>
       </IconButton>
+      </div>
     </div>
   );
 }

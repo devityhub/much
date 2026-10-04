@@ -152,6 +152,8 @@ export interface ProfileListening {
   roomId: string | null;
   roomName: string | null;
   listeners: number;
+  /** Cliente: quando o snapshot chegou, para alinhar o relógio da faixa. */
+  receivedAt?: number;
 }
 
 export interface UserProfile {

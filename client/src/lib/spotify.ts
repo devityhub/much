@@ -1,6 +1,6 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { api } from './api';
-import type { SpotifyAccount } from './types';
+import type { ProfileListening, SpotifyAccount } from './types';
 
 const POLL_MS = 1500;
 const CONNECT_TIMEOUT_MS = 3 * 60_000;
@@ -156,4 +156,11 @@ export function searchSpotify(q: string) {
 export function formatDuration(ms: number) {
   const total = Math.max(0, Math.floor(ms / 1000));
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+}
+
+/** Toca no seu Spotify a mesma faixa que o amigo está ouvindo, no ponto atual. */
+export function listenAlongTo(listening: ProfileListening) {
+  const elapsed = listening.isPlaying ? Math.max(0, Date.now() - (listening.receivedAt ?? Date.now())) : 0;
+  const positionMs = Math.min(listening.progressMs + elapsed, Math.max(0, (listening.track.durationMs || 1) - 1000));
+  return api('/spotify/along', { method: 'POST', body: { uri: listening.track.uri, positionMs } });
 }

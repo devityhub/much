@@ -28,7 +28,7 @@ import Avatar from '../Avatar';
 import RoomIcon from '../RoomIcon';
 import RoomPromo from '../room/RoomPromo';
 import { SpotifyLogo } from '../SpotifyBadge';
-import { NowPlayingCard, SpotifyAccountCard } from './NowPlaying';
+import { NowPlayingCard, SpotifyAccountCard, useListenAlongAction } from './NowPlaying';
 import { useUserActions } from './useUserActions';
 import { useCall } from '../../context/call';
 import { useToast } from '../../context/toast';
@@ -243,6 +243,7 @@ function Content({ seed, close }: { seed: PublicUser; close: () => void }) {
   const { relationship, friend } = actions;
   const { openUserMenu } = useUi();
   const { joinRoom } = useCall();
+  const listenAlong = useListenAlongAction();
   const toast = useToast();
   const [loaded, setLoaded] = useState<{ profile: UserProfile; at: number } | null>(null);
 
@@ -335,7 +336,11 @@ function Content({ seed, close }: { seed: PublicUser; close: () => void }) {
       <Section key="spotify" title="No Spotify">
         <div className="space-y-2">
           {listening ? (
-            <NowPlayingCard listening={listening} onJoin={room ? () => joinRoom(room) : undefined} />
+            <NowPlayingCard
+              listening={listening}
+              onJoin={room ? () => joinRoom(room) : undefined}
+              onAlong={!room && relationship !== 'self' ? () => void listenAlong(listening) : undefined}
+            />
           ) : profile?.spotify ? (
             <SpotifyAccountCard name={profile.spotify.name} premium={profile.spotify.premium} />
           ) : null}

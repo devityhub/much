@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { Disc3, ExternalLink, Headphones, Pause } from 'lucide-react';
 import { SPOTIFY_GREEN, SpotifyLogo } from '../SpotifyBadge';
-import { formatDuration } from '../../lib/spotify';
+import { useToast } from '../../context/toast';
+import { useUi } from '../../context/ui';
+import { formatDuration, listenAlongTo, useSpotifyAccount } from '../../lib/spotify';
 import type { ProfileListening, SpotifyTrack } from '../../lib/types';
 
 /**
@@ -26,7 +28,29 @@ function useProgress(listening: ProfileListening) {
   return Math.min(listening.progressMs + elapsed, listening.track.durationMs);
 }
 
-function Cover({ track, size }: { track: SpotifyTrack; size: number }) {
+export function useListenAlongAction() {
+  const account = useSpotifyAccount();
+  const { openSettings } = useUi();
+  const toast = useToast();
+  return useCallback(
+    async (listening: ProfileListening) => {
+      if (!account?.linked) {
+        toast('Conecte o Spotify em Configurações para ouvir junto', 'info');
+        openSettings('connections');
+        return;
+      }
+      try {
+        await listenAlongTo(listening);
+        toast(`Tocando ${listening.track.name} no seu Spotify`, 'success');
+      } catch (err) {
+        toast((err as Error).message, 'error');
+      }
+    },
+    [account?.linked, openSettings, toast],
+  );
+}
+
+export function Cover({ track, size }: { track: SpotifyTrack; size: number }) {
   if (track.image) {
     return <img src={track.image} alt="" style={{ width: size, height: size }} className="shrink-0 rounded-lg object-cover shadow-lg shadow-black/50" />;
   }
@@ -74,16 +98,38 @@ function Progress({ listening, times = false }: { listening: ProfileListening; t
   );
 }
 
-function JoinButton({ listening, onJoin }: { listening: ProfileListening; onJoin: () => void }) {
+function AlongButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <motion.button
+      type="button"
       whileTap={{ scale: 0.97 }}
-      onClick={onJoin}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
       className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#1db954] py-2 text-xs font-bold text-black transition hover:brightness-110"
     >
-      <Headphones size={14} /> Ouvir junto em {listening.roomName}
+      <Headphones size={14} /> {label}
     </motion.button>
   );
+}
+
+function ActivityAction({ listening, onJoin, onAlong }: { listening: ProfileListening; onJoin?: () => void; onAlong?: () => void }) {
+  if (listening.roomId && listening.roomName && onJoin) {
+    return (
+      <div className="mt-2.5">
+        <AlongButton label={`Ouvir junto em ${listening.roomName}`} onClick={onJoin} />
+      </div>
+    );
+  }
+  if (onAlong) {
+    return (
+      <div className="mt-2.5">
+        <AlongButton label="Ouvir junto" onClick={onAlong} />
+      </div>
+    );
+  }
+  return null;
 }
 
 /** Conta Spotify no perfil (quando “Exibir no perfil” está ligado), mesmo sem música no ar. */
@@ -100,7 +146,7 @@ export function SpotifyAccountCard({ name, premium }: { name: string; premium?: 
 }
 
 /** Versão grande, do perfil completo. */
-export function NowPlayingCard({ listening, onJoin }: { listening: ProfileListening; onJoin?: () => void }) {
+export function NowPlayingCard({ listening, onJoin, onAlong }: { listening: ProfileListening; onJoin?: () => void; onAlong?: () => void }) {
   const { track } = listening;
   return (
     <div className="relative overflow-hidden rounded-xl border border-[#1db954]/30 bg-black/30 p-3">
@@ -128,18 +174,14 @@ export function NowPlayingCard({ listening, onJoin }: { listening: ProfileListen
         <div className="mt-2.5">
           <Progress listening={listening} times />
         </div>
-        {listening.roomId && onJoin && (
-          <div className="mt-2.5">
-            <JoinButton listening={listening} onJoin={onJoin} />
-          </div>
-        )}
+        <ActivityAction listening={listening} onJoin={onJoin} onAlong={onAlong} />
       </div>
     </div>
   );
 }
 
 /** Versão estreita, do cartão rápido do perfil. */
-export function NowPlayingLine({ listening, onJoin }: { listening: ProfileListening; onJoin?: () => void }) {
+export function NowPlayingLine({ listening, onJoin, onAlong }: { listening: ProfileListening; onJoin?: () => void; onAlong?: () => void }) {
   const { track } = listening;
   return (
     <div className="rounded-xl border border-[#1db954]/25 bg-black/25 p-2.5">
@@ -167,11 +209,7 @@ export function NowPlayingLine({ listening, onJoin }: { listening: ProfileListen
       <div className="mt-2">
         <Progress listening={listening} />
       </div>
-      {listening.roomId && onJoin && (
-        <div className="mt-2">
-          <JoinButton listening={listening} onJoin={onJoin} />
-        </div>
-      )}
+      <ActivityAction listening={listening} onJoin={onJoin} onAlong={onAlong} />
     </div>
   );
 }

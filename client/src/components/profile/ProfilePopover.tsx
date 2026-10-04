@@ -5,7 +5,7 @@ import ProfileCard from './ProfileCard';
 import Avatar from '../Avatar';
 import RoomIcon from '../RoomIcon';
 import RoomPromo from '../room/RoomPromo';
-import { NowPlayingLine, SpotifyAccountCard } from './NowPlaying';
+import { NowPlayingLine, SpotifyAccountCard, useListenAlongAction } from './NowPlaying';
 import { useUserActions } from './useUserActions';
 import { useCall } from '../../context/call';
 import { useRooms } from '../../context/rooms';
@@ -174,15 +174,18 @@ function SpotifyActivity({
   close,
   fallback = null,
   account = null,
+  allowAlong = false,
 }: {
   userId: number;
   close: () => void;
   fallback?: ProfileListening | null;
   account?: UserProfile['spotify'];
+  allowAlong?: boolean;
 }) {
   const live = useListening(userId);
   const listening = live ?? fallback;
   const { joinRoom } = useCall();
+  const listenAlong = useListenAlongAction();
   if (listening) {
     const room = listening.roomId && listening.roomName ? { id: listening.roomId, name: listening.roomName } : null;
     return (
@@ -196,6 +199,7 @@ function SpotifyActivity({
               }
             : undefined
         }
+        onAlong={allowAlong && !room ? () => void listenAlong(listening) : undefined}
       />
     );
   }
@@ -355,6 +359,7 @@ export function UserContent({ seed, close, flush = false }: { seed: PublicUser; 
           close={close}
           fallback={listening}
           account={profile?.spotify ?? null}
+          allowAlong
         />
       )}
       {room && <RoomActivityCard roomId={room.roomId} roomName={room.roomName} close={close} />}

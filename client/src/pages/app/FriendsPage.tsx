@@ -1,14 +1,17 @@
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { Check, ChevronRight, Compass, MessageCircle, Phone, Search, UserMinus, Users, X } from 'lucide-react';
+import { Check, ChevronRight, Compass, Headphones, MessageCircle, Phone, Search, UserMinus, Users, X } from 'lucide-react';
 import Avatar from '../../components/Avatar';
+import { Cover, useListenAlongAction } from '../../components/profile/NowPlaying';
+import { SpotifyLogo } from '../../components/SpotifyBadge';
 import { useCall } from '../../context/call';
 import { useDms } from '../../context/dms';
 import { useFriends } from '../../context/friends';
 import { useToast } from '../../context/toast';
 import { useUserTrigger } from '../../context/ui';
-import { listeningStore, useListeningName, useListeningVersion } from '../../lib/listening';
+import { useAuth } from '../../lib/auth';
+import { listeningStore, useListening, useListeningName, useListeningVersion } from '../../lib/listening';
 import { displayName, presenceLabel } from '../../lib/users';
 import type { Friend, PublicUser } from '../../lib/types';
 
@@ -18,7 +21,14 @@ type Tab = 'online' | 'all' | 'pending' | 'add';
 function ActivityText({ friend }: { friend: Friend }) {
   const song = useListeningName(friend);
   if (!friend.online) return <span>Offline</span>;
-  if (song) return <span className="text-[#1db954]">Ouvindo {song}</span>;
+  if (song) {
+    return (
+      <span className="inline-flex max-w-full items-center gap-1 text-[#1db954]">
+        <SpotifyLogo size={11} />
+        <span className="truncate">Ouvindo {song}</span>
+      </span>
+    );
+  }
   if (friend.activity?.type === 'room') return <span>Na sala {friend.activity.roomName}</span>;
   if (friend.activity?.type === 'call') return <span>Em uma chamada privada</span>;
   return <span>{friend.user.customStatus || presenceLabel(friend.presence)}</span>;
@@ -195,8 +205,65 @@ function UserButton({ user, className, children }: { user: PublicUser; className
   );
 }
 
-function ActiveNow({ friends }: { friends: Friend[] }) {
+function ActiveNowCard({ friend }: { friend: Friend }) {
   const trigger = useUserTrigger();
+  const { user } = useAuth();
+  const listenAlong = useListenAlongAction();
+  const listening = useListening(friend.user.id);
+  const track = listening?.track ?? null;
+  const canAlong = Boolean(track && user?.id !== friend.user.id);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 12 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="cursor-pointer rounded-2xl border border-line bg-surface-1 p-4 transition-colors hover:bg-surface-2"
+      {...trigger(friend.user)}
+    >
+      <div className="flex items-center gap-3">
+        <Avatar nick={friend.user.nick} avatar={friend.user.avatar} image={friend.user.avatarImage} size={36} status={friend.presence} />
+        <div className="min-w-0">
+          <p className="truncate font-semibold">{displayName(friend.user)}</p>
+          <p className="truncate text-xs text-muted">
+            {track ? (
+              <span className="inline-flex items-center gap-1 text-[#1db954]">
+                <SpotifyLogo size={11} />
+                {listening?.isPlaying === false ? 'Pausado no Spotify' : 'Ouvindo no Spotify'}
+              </span>
+            ) : (
+              <ActivityText friend={friend} />
+            )}
+          </p>
+        </div>
+      </div>
+      {track && listening && (
+        <div className="mt-3">
+          <div className="flex items-center gap-2.5">
+            <Cover track={track} size={40} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">{track.name}</p>
+              <p className="truncate text-xs text-muted">{track.artists}</p>
+            </div>
+          </div>
+          {canAlong && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                void listenAlong(listening);
+              }}
+              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#1db954] py-1.5 text-xs font-bold text-black transition hover:brightness-110"
+            >
+              <Headphones size={14} /> Ouvir junto
+            </button>
+          )}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+function ActiveNow({ friends }: { friends: Friend[] }) {
   // Quem acabou de dar play entra aqui pela loja, sem esperar a lista de amigos recarregar.
   useListeningVersion();
   const active = friends.filter((f) => f.online && (f.activity || listeningStore.get(f.user.id)));
@@ -204,25 +271,8 @@ function ActiveNow({ friends }: { friends: Friend[] }) {
     <aside className="hidden w-80 shrink-0 border-l border-line p-5 xl:block">
       <h3 className="font-display text-lg font-semibold">Ativo agora</h3>
       <div className="mt-4 space-y-3">
-        {active.map((friend, i) => (
-          <motion.div
-            key={friend.id}
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className="cursor-pointer rounded-2xl border border-line bg-surface-1 p-4 transition-colors hover:bg-surface-2"
-            {...trigger(friend.user)}
-          >
-            <div className="flex items-center gap-3">
-              <Avatar nick={friend.user.nick} avatar={friend.user.avatar} image={friend.user.avatarImage} size={36} status={friend.presence} />
-              <div className="min-w-0">
-                <p className="truncate font-semibold">{displayName(friend.user)}</p>
-                <p className="truncate text-xs text-muted">
-                  <ActivityText friend={friend} />
-                </p>
-              </div>
-            </div>
-          </motion.div>
+        {active.map((friend) => (
+          <ActiveNowCard key={friend.id} friend={friend} />
         ))}
         {!active.length && (
           <div className="rounded-2xl border border-line bg-surface-1 p-5 text-center">
