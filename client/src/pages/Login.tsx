@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import AuthLayout, { AuthError, AuthInput, AuthLabel, AuthLink, AuthSubmit } from '../components/AuthLayout';
 import AuthQr from '../components/AuthQr';
 import { useAuth } from '../lib/auth';
@@ -29,10 +30,18 @@ export default function Login() {
 
   return (
     <AuthLayout wide>
-      <div className="flex gap-12">
+      <div className="flex items-stretch gap-10">
         <form onSubmit={(e) => void submit(e)} className="min-w-0 flex-1">
-          <h1 className="text-center text-2xl font-semibold text-white">De volta ao PassTime</h1>
-          <p className="mt-1.5 mb-5 text-center text-[15px] text-[#b5bac1]">Que bom que você voltou pra conversar com a galera.</p>
+          <motion.h1
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="font-display text-3xl font-bold"
+          >
+            De volta ao PassTime
+          </motion.h1>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.08 }} className="mt-1.5 mb-7 text-muted">
+            Entra pra ligar, mandar mensagem e ficar com a galera.
+          </motion.p>
           <div className="space-y-4">
             <AuthError error={error} />
             <div>
@@ -54,11 +63,11 @@ export default function Login() {
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 required
               />
-              <AuthLink className="mt-1.5" onClick={() => setHint((v) => !v)}>
+              <AuthLink className="mt-2 text-sm" onClick={() => setHint((v) => !v)}>
                 Esqueceu a senha?
               </AuthLink>
               {hint && (
-                <p className="mt-2 text-xs leading-relaxed text-[#b5bac1]">
+                <p className="mt-2 text-xs leading-relaxed text-muted">
                   Por enquanto o PassTime não reabre a conta sozinho. Tente o nick se o e-mail não funcionar. Se travar de vez,
                   fale com quem administra este servidor.
                 </p>
@@ -66,13 +75,14 @@ export default function Login() {
             </div>
             <AuthSubmit busy={busy} idle="Entrar" busyLabel="Entrando..." />
           </div>
-          <p className="mt-3 text-sm text-[#949ba4]">
+          <p className="mt-6 text-sm text-muted">
             Ainda sem conta?{' '}
-            <Link to="/register" state={location.state} className="auth-link">
+            <Link to="/register" state={location.state} className="font-semibold text-accent hover:underline">
               Criar uma agora
             </Link>
           </p>
         </form>
+        <div className="hidden w-px bg-line md:block" />
         <AuthQr />
       </div>
     </AuthLayout>

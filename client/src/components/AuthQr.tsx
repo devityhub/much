@@ -10,10 +10,10 @@ export default function AuthQr() {
   useEffect(() => {
     let alive = true;
     void QRCode.toDataURL(url, {
-      width: 184,
-      margin: 2,
+      width: 196,
+      margin: 1,
       errorCorrectionLevel: 'H',
-      color: { dark: '#111214', light: '#ffffff' },
+      color: { dark: '#6d28d9', light: '#f5f3ff' },
     }).then((data) => {
       if (alive) setSrc(data);
     });
@@ -33,27 +33,28 @@ export default function AuthQr() {
   };
 
   return (
-    <div className="hidden w-[240px] shrink-0 flex-col items-center text-center md:flex">
-      <div className="relative rounded-sm bg-white p-2">
-        {src ? (
-          <img src={src} alt="Código QR do PassTime" width={184} height={184} className="block" />
-        ) : (
-          <div className="h-[184px] w-[184px] bg-white" />
-        )}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="rounded-md bg-white p-1 shadow-sm">
-            <LogoMark size={36} />
+    <aside className="hidden w-[250px] shrink-0 flex-col items-center text-center md:flex">
+      <div className="rounded-2xl border border-line bg-surface-2 p-3">
+        <div className="relative overflow-hidden rounded-xl">
+          {src ? (
+            <img src={src} alt="Código QR do PassTime" width={196} height={196} className="block" />
+          ) : (
+            <div className="h-[196px] w-[196px] bg-[#f5f3ff]" />
+          )}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="rounded-xl bg-white p-1.5 shadow-md">
+              <LogoMark size={34} />
+            </div>
           </div>
         </div>
       </div>
-      <h2 className="mt-6 text-xl font-bold text-white">Entrar pelo celular</h2>
-      <p className="mt-2 text-sm leading-snug text-[#b5bac1]">
-        Aponte a câmera do celular para este código e abra o <span className="font-semibold text-white">PassTime</span> no
-        navegador. Depois entre com a mesma conta.
+      <h2 className="font-display mt-5 text-lg font-bold">No celular</h2>
+      <p className="mt-1.5 text-sm leading-relaxed text-muted">
+        Escaneie e o PassTime abre no navegador. Entra com a mesma conta.
       </p>
-      <button type="button" onClick={() => void copy()} className="auth-link mt-4">
-        {copied ? 'Link copiado' : 'Ou copie o endereço do site'}
+      <button type="button" onClick={() => void copy()} className="mt-4 text-sm font-semibold text-accent hover:underline">
+        {copied ? 'Link copiado' : 'Copiar endereço do site'}
       </button>
-    </div>
+    </aside>
   );
 }
