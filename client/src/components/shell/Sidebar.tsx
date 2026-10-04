@@ -107,7 +107,13 @@ function FriendRow({ friend }: { friend: Friend }) {
         <Avatar nick={friend.user.nick} avatar={friend.user.avatar} image={friend.user.avatarImage} size={32} status={friend.presence} statusBg="var(--color-surface-1)" />
         <span className="min-w-0">
           <span className={`block truncate text-[15px] ${unread ? 'font-bold text-white' : 'font-medium'}`}>{displayName(friend.user)}</span>
-          <span className={`block truncate text-xs ${unread ? 'text-white/70' : typing[friend.user.id] ? 'text-ok' : 'text-faint'}`}>{subtitle}</span>
+          <span
+            className={`block truncate text-xs ${
+              unread ? 'text-white/70' : typing[friend.user.id] ? 'text-ok' : song ? 'text-[#1db954]' : 'text-faint'
+            }`}
+          >
+            {subtitle}
+          </span>
         </span>
       </button>
       {unread > 0 && (

@@ -73,10 +73,27 @@ usersRouter.get('/:id', (req, res) => {
   };
 
   const spotify = queries.spotifyAccount.get(row.id);
+  // Conta no perfil: quem pediu "Exibir no perfil". Atividade ao vivo só para quem já pode ver o status.
+  const spotifyProfile =
+    !hidden && spotify?.show_on_profile
+      ? { name: spotify.display_name || 'Spotify', premium: spotify.product === 'premium' }
+      : null;
   const listening =
     visible && !hidden && spotify?.show_on_profile ? spotifyPresence.listeningOf(row.id) : null;
 
-  res.json({ user, relationship, requestId, since, presence, activity, mutualFriends, stats, rooms, listening });
+  res.json({
+    user,
+    relationship,
+    requestId,
+    since,
+    presence,
+    activity,
+    mutualFriends,
+    stats,
+    rooms,
+    spotify: spotifyProfile,
+    listening,
+  });
 });
 
 /** Bloquear desfaz a amizade (ou pedido pendente) e impede novos pedidos e chamadas. */

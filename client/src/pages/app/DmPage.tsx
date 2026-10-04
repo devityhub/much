@@ -67,7 +67,7 @@ function DmHeader({
         <Avatar nick={friend.user.nick} avatar={friend.user.avatar} image={friend.user.avatarImage} size={28} status={friend.presence} statusBg="var(--color-bg)" />
         <span className="min-w-0">
           <span className="block truncate leading-tight font-semibold">{name}</span>
-          <span className="block truncate text-xs text-faint">{activityLabel(friend, song)}</span>
+          <span className={`block truncate text-xs ${song ? 'text-[#1db954]' : 'text-faint'}`}>{activityLabel(friend, song)}</span>
         </span>
       </button>
       <div className="ml-auto flex shrink-0 items-center gap-1.5">

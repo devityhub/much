@@ -86,6 +86,19 @@ function JoinButton({ listening, onJoin }: { listening: ProfileListening; onJoin
   );
 }
 
+/** Conta Spotify no perfil (quando “Exibir no perfil” está ligado), mesmo sem música no ar. */
+export function SpotifyAccountCard({ name, premium }: { name: string; premium?: boolean }) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-[#1db954]/25 bg-black/25 px-3 py-2.5">
+      <SpotifyLogo size={28} />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold">{name}</p>
+        <p className="truncate text-xs text-muted">{premium ? 'Spotify Premium' : 'Spotify'}</p>
+      </div>
+    </div>
+  );
+}
+
 /** Versão grande, do perfil completo. */
 export function NowPlayingCard({ listening, onJoin }: { listening: ProfileListening; onJoin?: () => void }) {
   const { track } = listening;

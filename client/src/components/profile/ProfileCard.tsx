@@ -2,8 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { CalendarDays, Maximize2, Plus, Quote, X } from 'lucide-react';
 import Avatar from '../Avatar';
-import SpotifyBadge from '../SpotifyBadge';
+import SpotifyBadge, { SpotifyLogo } from '../SpotifyBadge';
 import { useCallSnapshot } from '../../context/call';
+import { useListening } from '../../lib/listening';
 import { coverBackground } from '../../lib/theme';
 import { displayName, presenceLabel } from '../../lib/users';
 import type { PublicUser, VisiblePresence } from '../../lib/types';
@@ -123,10 +124,19 @@ export default function ProfileCard({
   rounded = true,
 }: ProfileCardProps) {
   const snapshot = useCallSnapshot();
+  const listening = useListening(user.id);
   // Anel mais escuro que o cartão: assim a borda do avatar aparece inteira, tanto sobre o banner quanto sobre o fundo.
   const ring = 'var(--color-bg)';
   const since = user.createdAt ? new Date(user.createdAt.replace(' ', 'T') + 'Z') : null;
   const isDj = snapshot?.music?.dj.id === user.id;
+  const spotifyLive = Boolean(listening?.track);
+  const spotifyActivity =
+    listening?.track
+      ? `${listening.isPlaying ? 'Ouvindo' : 'Pausado'} ${listening.track.name}`
+      : activity?.startsWith('Ouvindo')
+        ? activity
+        : null;
+  const otherActivity = spotifyActivity ? null : activity;
 
   return (
     <div className={`overflow-hidden ${rounded ? 'rounded-2xl' : ''}`} style={{ background: bg }}>
@@ -172,6 +182,14 @@ export default function ProfileCard({
                 <Maximize2 size={22} className="text-white opacity-0 transition-opacity group-hover:opacity-100" />
               </button>
             )}
+            {(isDj || spotifyLive) && (
+              <span className="absolute right-0 bottom-0">
+                <SpotifyBadge
+                  size={20}
+                  label={isDj ? 'Tocando música do Spotify para a sala' : 'Ouvindo no Spotify'}
+                />
+              </span>
+            )}
           </motion.div>
           <div className="min-w-0 flex-1 pb-1">
             <StatusBubble text={user.customStatus ?? ''} onSave={onSaveStatus} />
@@ -186,15 +204,10 @@ export default function ProfileCard({
               {user.pronouns && <span className="text-faint"> · {user.pronouns}</span>}
             </p>
           </div>
-          {isDj && (
-            <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="mt-1.5">
-              <SpotifyBadge size={18} label="Tocando música do Spotify para a sala" />
-            </motion.span>
-          )}
         </div>
 
         <AnimatePresence>
-          {(status || activity) && (
+          {(status || spotifyActivity || otherActivity) && (
             <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="mt-2.5 flex flex-wrap gap-1.5">
               {status && (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-black/25 px-2.5 py-1 text-xs font-medium text-muted">
@@ -202,7 +215,15 @@ export default function ProfileCard({
                   {presenceLabel(status)}
                 </span>
               )}
-              {activity && <span className="inline-flex items-center rounded-full bg-black/25 px-2.5 py-1 text-xs font-medium text-white/80">{activity}</span>}
+              {spotifyActivity && (
+                <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#1db954]/15 px-2.5 py-1 text-xs font-medium text-[#1db954]">
+                  <SpotifyLogo size={11} />
+                  <span className="truncate">{spotifyActivity}</span>
+                </span>
+              )}
+              {otherActivity && (
+                <span className="inline-flex items-center rounded-full bg-black/25 px-2.5 py-1 text-xs font-medium text-white/80">{otherActivity}</span>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

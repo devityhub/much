@@ -167,6 +167,8 @@ export interface UserProfile {
   stats: { friends: number; rooms: number; stickers: number };
   /** `current` só vem quando dá para ver o status da pessoa; `promoted` é a sala que ela divulga. */
   rooms: { current: Room | null; owned: Room[]; promoted: Room | null };
+  /** Conta Spotify ligada e marcada para aparecer no perfil (mesmo sem música tocando). */
+  spotify: { name: string; premium: boolean } | null;
   listening: ProfileListening | null;
 }
 

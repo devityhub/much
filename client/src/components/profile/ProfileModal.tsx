@@ -28,7 +28,7 @@ import Avatar from '../Avatar';
 import RoomIcon from '../RoomIcon';
 import RoomPromo from '../room/RoomPromo';
 import { SpotifyLogo } from '../SpotifyBadge';
-import { NowPlayingCard } from './NowPlaying';
+import { NowPlayingCard, SpotifyAccountCard } from './NowPlaying';
 import { useUserActions } from './useUserActions';
 import { useCall } from '../../context/call';
 import { useToast } from '../../context/toast';
@@ -329,11 +329,17 @@ function Content({ seed, close }: { seed: PublicUser; close: () => void }) {
     </Section>,
   );
 
-  if (listening) {
-    const room = listening.roomId && listening.roomName ? { id: listening.roomId, name: listening.roomName } : null;
+  if (listening || profile?.spotify) {
+    const room = listening?.roomId && listening.roomName ? { id: listening.roomId, name: listening.roomName } : null;
     right.push(
       <Section key="spotify" title="No Spotify">
-        <NowPlayingCard listening={listening} onJoin={room ? () => joinRoom(room) : undefined} />
+        <div className="space-y-2">
+          {listening ? (
+            <NowPlayingCard listening={listening} onJoin={room ? () => joinRoom(room) : undefined} />
+          ) : profile?.spotify ? (
+            <SpotifyAccountCard name={profile.spotify.name} premium={profile.spotify.premium} />
+          ) : null}
+        </div>
       </Section>,
     );
   }
@@ -424,8 +430,11 @@ function Content({ seed, close }: { seed: PublicUser; close: () => void }) {
             )}
             {/* A música passa na frente da sala, como no resto do app. */}
             {listening ? (
-              <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-black/25 px-2.5 py-1 text-xs font-medium text-[#1db954]">
-                <SpotifyLogo size={11} /> <span className="truncate">{listening.track.name}</span>
+              <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#1db954]/15 px-2.5 py-1 text-xs font-medium text-[#1db954]">
+                <SpotifyLogo size={11} />
+                <span className="truncate">
+                  {listening.isPlaying ? 'Ouvindo' : 'Pausado'} · {listening.track.name}
+                </span>
               </span>
             ) : (
               current && <span className="inline-flex items-center rounded-full bg-black/25 px-2.5 py-1 text-xs font-medium text-white/80">Na sala {current.name}</span>

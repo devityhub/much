@@ -5,7 +5,7 @@ import ProfileCard from './ProfileCard';
 import Avatar from '../Avatar';
 import RoomIcon from '../RoomIcon';
 import RoomPromo from '../room/RoomPromo';
-import { NowPlayingLine } from './NowPlaying';
+import { NowPlayingLine, SpotifyAccountCard } from './NowPlaying';
 import { useUserActions } from './useUserActions';
 import { useCall } from '../../context/call';
 import { useRooms } from '../../context/rooms';
@@ -15,7 +15,7 @@ import { useAuth } from '../../lib/auth';
 import { listeningStore, useListening } from '../../lib/listening';
 import { fetchProfile, peekProfile } from '../../lib/profileCache';
 import { displayName, PRESENCE_INFO, visiblePresence } from '../../lib/users';
-import type { Activity, Presence, PublicUser, UserProfile } from '../../lib/types';
+import type { Activity, Presence, ProfileListening, PublicUser, UserProfile } from '../../lib/types';
 
 const WIDTH = 320;
 const MARGIN = 12;
@@ -75,7 +75,30 @@ function SelfContent({ close }: { close: () => void }) {
   const { active } = useCall();
   const { openSettings, openFullProfile } = useUi();
   const toast = useToast();
+  const listening = useListening(user?.id);
   const [presenceOpen, setPresenceOpen] = useState(false);
+  const [spotify, setSpotify] = useState<UserProfile['spotify']>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const cached = peekProfile(user.id);
+    if (cached) {
+      setSpotify(cached.spotify);
+      listeningStore.prime(user.id, cached.listening);
+    }
+    fetchProfile(user.id)
+      .then((p) => {
+        if (cancelled) return;
+        setSpotify(p.spotify);
+        listeningStore.prime(user.id, p.listening);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
   if (!user) return null;
 
   const safe = (p: Promise<unknown>): Promise<void> =>
@@ -84,16 +107,21 @@ function SelfContent({ close }: { close: () => void }) {
       (err: Error) => toast(err.message, 'error'),
     );
 
+  const callActivity = active ? (active.kind === 'room' ? `Na sala ${active.title}` : `Em chamada com ${active.title}`) : null;
+  const spotifyActivity = listening
+    ? `${listening.isPlaying ? 'Ouvindo' : 'Pausado'} ${listening.track.name}`
+    : null;
+
   return (
     <ProfileCard
       user={user}
       status={visiblePresence(user.presence)}
-      activity={active ? (active.kind === 'room' ? `Na sala ${active.title}` : `Em chamada com ${active.title}`) : null}
+      activity={spotifyActivity ?? callActivity}
       onSaveStatus={(customStatus) => safe(updateProfile({ customStatus }))}
       onExpand={() => openFullProfile(user)}
       bg="var(--color-surface-2)"
     >
-      <SpotifyActivity userId={user.id} close={close} />
+      <SpotifyActivity userId={user.id} close={close} fallback={listening} account={spotify} />
       <div className="rounded-xl bg-black/25 p-1.5">
         <MenuItem icon={<Pencil size={16} />} label="Editar perfil" onClick={() => openSettings('profile')} />
         <div className="relative" onMouseEnter={() => setPresenceOpen(true)} onMouseLeave={() => setPresenceOpen(false)}>
@@ -132,31 +160,47 @@ function SelfContent({ close }: { close: () => void }) {
 }
 
 function activityText(activity: Activity) {
-  if (activity?.type === 'spotify') return `Ouvindo ${activity.name}`;
+  if (activity?.type === 'spotify') {
+    return activity.artists ? `Ouvindo ${activity.name} · ${activity.artists}` : `Ouvindo ${activity.name}`;
+  }
   if (activity?.type === 'room') return `Na sala ${activity.roomName}`;
   if (activity?.type === 'call') return 'Em uma chamada privada';
   return null;
 }
 
 /** O que a pessoa está ouvindo, ao vivo. Só mostra: ninguém controla o Spotify de ninguém por aqui. */
-function SpotifyActivity({ userId, close }: { userId: number; close: () => void }) {
-  const listening = useListening(userId);
+function SpotifyActivity({
+  userId,
+  close,
+  fallback = null,
+  account = null,
+}: {
+  userId: number;
+  close: () => void;
+  fallback?: ProfileListening | null;
+  account?: UserProfile['spotify'];
+}) {
+  const live = useListening(userId);
+  const listening = live ?? fallback;
   const { joinRoom } = useCall();
-  if (!listening) return null;
-  const room = listening.roomId && listening.roomName ? { id: listening.roomId, name: listening.roomName } : null;
-  return (
-    <NowPlayingLine
-      listening={listening}
-      onJoin={
-        room
-          ? () => {
-              close();
-              joinRoom(room);
-            }
-          : undefined
-      }
-    />
-  );
+  if (listening) {
+    const room = listening.roomId && listening.roomName ? { id: listening.roomId, name: listening.roomName } : null;
+    return (
+      <NowPlayingLine
+        listening={listening}
+        onJoin={
+          room
+            ? () => {
+                close();
+                joinRoom(room);
+              }
+            : undefined
+        }
+      />
+    );
+  }
+  if (account) return <SpotifyAccountCard name={account.name} premium={account.premium} />;
+  return null;
 }
 
 function MutualFriends({ mutual }: { mutual: UserProfile['mutualFriends'] }) {
@@ -278,7 +322,13 @@ export function UserContent({ seed, close, flush = false }: { seed: PublicUser; 
   // Sala vira um card com atalho para entrar, então sai da linha de atividade.
   const room = !blocked && rawActivity?.type === 'room' ? rawActivity : null;
   const promoted = blocked ? null : (profile?.rooms.promoted ?? null);
-  const activity = blocked || room ? null : activityText(rawActivity);
+  const live = useListening(user.id);
+  const listening = live ?? (blocked ? null : profile?.listening ?? null);
+  const spotifyActivity = listening
+    ? `${listening.isPlaying ? 'Ouvindo' : 'Pausado'} ${listening.track.name}`
+    : blocked || room
+      ? null
+      : activityText(rawActivity);
   const since = profile?.since ? new Date(profile.since.replace(' ', 'T') + 'Z') : null;
   const act = (fn: () => unknown) => () => {
     close();
@@ -289,7 +339,7 @@ export function UserContent({ seed, close, flush = false }: { seed: PublicUser; 
     <ProfileCard
       user={user}
       status={blocked ? undefined : presence}
-      activity={activity}
+      activity={spotifyActivity}
       onExpand={() => openFullProfile(user)}
       bg="var(--color-surface-2)"
       rounded={!flush}
@@ -299,7 +349,14 @@ export function UserContent({ seed, close, flush = false }: { seed: PublicUser; 
           <Ban size={14} /> Você bloqueou esta pessoa.
         </div>
       )}
-      {!blocked && <SpotifyActivity userId={user.id} close={close} />}
+      {!blocked && (
+        <SpotifyActivity
+          userId={user.id}
+          close={close}
+          fallback={listening}
+          account={profile?.spotify ?? null}
+        />
+      )}
       {room && <RoomActivityCard roomId={room.roomId} roomName={room.roomName} close={close} />}
       {/* A sala divulgada só some quando a pessoa já está nela: aí o card de cima mostra a mesma sala. */}
       {promoted && promoted.id !== room?.roomId && <RoomPromo room={promoted} />}

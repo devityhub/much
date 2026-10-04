@@ -17,11 +17,11 @@ type Tab = 'online' | 'all' | 'pending' | 'add';
 /** A música do Spotify passa na frente da sala e do status escrito. */
 function ActivityText({ friend }: { friend: Friend }) {
   const song = useListeningName(friend);
-  if (!friend.online) return 'Offline';
-  if (song) return `Ouvindo ${song}`;
-  if (friend.activity?.type === 'room') return `Na sala ${friend.activity.roomName}`;
-  if (friend.activity?.type === 'call') return 'Em uma chamada privada';
-  return friend.user.customStatus || presenceLabel(friend.presence);
+  if (!friend.online) return <span>Offline</span>;
+  if (song) return <span className="text-[#1db954]">Ouvindo {song}</span>;
+  if (friend.activity?.type === 'room') return <span>Na sala {friend.activity.roomName}</span>;
+  if (friend.activity?.type === 'call') return <span>Em uma chamada privada</span>;
+  return <span>{friend.user.customStatus || presenceLabel(friend.presence)}</span>;
 }
 
 function RowAction({ label, onClick, tone = 'default', children }: { label: string; onClick: () => void; tone?: 'default' | 'ok' | 'danger'; children: ReactNode }) {
@@ -160,7 +160,7 @@ function ActiveNow({ friends }: { friends: Friend[] }) {
         {!active.length && (
           <div className="rounded-2xl border border-line bg-surface-1 p-5 text-center">
             <p className="font-semibold">Tudo quieto por enquanto...</p>
-            <p className="mt-1 text-sm text-muted">Quando um amigo entrar numa sala ou chamada, aparece aqui.</p>
+            <p className="mt-1 text-sm text-muted">Quando um amigo ouvir Spotify, entrar numa sala ou chamada, aparece aqui.</p>
           </div>
         )}
       </div>
