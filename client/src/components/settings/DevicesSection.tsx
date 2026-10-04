@@ -171,7 +171,7 @@ function InsecureOriginCard() {
         <ShieldAlert size={20} /> Conexão não segura: microfone, câmera e tela estão bloqueados
       </p>
       <p className="mt-2 text-sm text-muted">
-        Você abriu o Much por <b className="text-white">{origin}</b>. Os navegadores só liberam microfone, câmera e transmissão de tela em
+        Você abriu o PassTime por <b className="text-white">{origin}</b>. Os navegadores só liberam microfone, câmera e transmissão de tela em
         endereços <b className="text-white">https://</b> ou em <b className="text-white">localhost</b>. Escolha uma das opções:
       </p>
       <div className="mt-4 space-y-3 text-sm">
@@ -200,7 +200,7 @@ function InsecureOriginCard() {
         </div>
         <div className="rounded-xl bg-bg p-3">
           <p className="font-semibold">4. App desktop</p>
-          <p className="text-muted">O app desktop do Much já libera o servidor da rede local automaticamente.</p>
+          <p className="text-muted">O app desktop do PassTime já libera o servidor da rede local automaticamente.</p>
         </div>
       </div>
     </div>
@@ -303,7 +303,7 @@ export default function DevicesSection() {
         <PermissionRow
           icon={<Bell size={19} />}
           title="Notificações"
-          description="Avisa de chamadas e pedidos de amizade quando o Much está em segundo plano."
+          description="Avisa de chamadas e pedidos de amizade quando o PassTime está em segundo plano."
           state={notif}
           onRequest={() => void requestNotif()}
           what="Notificações"
@@ -364,7 +364,7 @@ export default function DevicesSection() {
       </div>
 
       <p className="flex items-center gap-2 text-xs text-faint">
-        <Speaker size={14} /> <MonitorUp size={14} /> Dispositivos conectados depois de abrir o Much aparecem sozinhos na lista.
+        <Speaker size={14} /> <MonitorUp size={14} /> Dispositivos conectados depois de abrir o PassTime aparecem sozinhos na lista.
       </p>
     </div>
   );

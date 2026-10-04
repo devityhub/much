@@ -42,7 +42,7 @@ function RingingView() {
             ...
           </motion.span>
         </p>
-        {offline && <p className="mx-auto mt-2 max-w-xs text-sm text-faint">Está offline agora. Vai tocar para essa pessoa assim que ela abrir o Much.</p>}
+        {offline && <p className="mx-auto mt-2 max-w-xs text-sm text-faint">Está offline agora. Vai tocar para essa pessoa assim que ela abrir o PassTime.</p>}
       </div>
     </div>
   );

@@ -481,7 +481,7 @@ function DesktopSection() {
           <div>
             <p className="font-semibold">Você está no app desktop</p>
             <p className="mt-1 text-sm text-muted">
-              Ao transmitir com “Som do PC, sem Discord”, o Much captura o áudio de cada programa separadamente e deixa o Discord de fora.
+              Ao transmitir com “Som do PC, sem Discord”, o PassTime captura o áudio de cada programa separadamente e deixa o Discord de fora.
             </p>
           </div>
         </div>
@@ -509,7 +509,7 @@ function DesktopSection() {
       <Card>
         <p className="font-display text-lg font-semibold">Transmita o som do PC inteiro, menos o Discord</p>
         <p className="mt-2 text-sm text-muted">
-          O navegador não consegue separar o áudio de um programa específico. O app desktop do Much consegue: ele captura cada
+          O navegador não consegue separar o áudio de um programa específico. O app desktop do PassTime consegue: ele captura cada
           programa separadamente e deixa o Discord de fora, sem precisar mexer nas saídas de áudio.
         </p>
         <ul className="mt-4 space-y-2 text-sm">

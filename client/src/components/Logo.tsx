@@ -4,12 +4,12 @@ export function LogoMark({ size = 32 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden>
       <defs>
-        <linearGradient id="much-logo" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id="passtime-logo" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#a855f7" />
           <stop offset="1" stopColor="#4c1d95" />
         </linearGradient>
       </defs>
-      <rect width="64" height="64" rx="18" fill="url(#much-logo)" />
+      <rect width="64" height="64" rx="18" fill="url(#passtime-logo)" />
       <path
         d="M16 44V24c0-2 2.4-3 3.8-1.6L26 28.6l6.2-6.2c1.4-1.4 3.8-.4 3.8 1.6V44"
         fill="none"
@@ -30,7 +30,7 @@ export default function Logo({ to = '/', size = 32, className = '' }: { to?: str
         <LogoMark size={size} />
       </span>
       <span className="font-display font-bold tracking-tight text-white" style={{ fontSize: size * 0.72 }}>
-        much
+        PassTime
       </span>
     </Link>
   );

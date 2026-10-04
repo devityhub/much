@@ -143,7 +143,7 @@ export interface Friend {
 
 export type Relationship = 'self' | 'friend' | 'incoming' | 'outgoing' | 'blocked' | 'none';
 
-/** O que a pessoa está ouvindo no Spotify agora. Só leitura: o Much não controla a música dela. */
+/** O que a pessoa está ouvindo no Spotify agora. Só leitura: o PassTime não controla a música dela. */
 export interface ProfileListening {
   track: SpotifyTrack;
   progressMs: number;

@@ -74,7 +74,7 @@ export function DiscordAudioGuide() {
         </li>
       </ol>
       <p className="mt-2 text-muted">
-        Só tem uma saída de áudio? Use o <b className="text-white">app desktop do Much</b>, que remove o Discord automaticamente.
+        Só tem uma saída de áudio? Use o <b className="text-white">app desktop do PassTime</b>, que remove o Discord automaticamente.
       </p>
     </div>
   );
@@ -166,7 +166,7 @@ function DesktopPicker({ onStart }: Pick<ScreenShareDialogProps, 'onStart'>) {
               value: 'system',
               icon: <ShieldCheck size={18} />,
               title: 'Som do PC, sem Discord',
-              hint: 'Todos os programas, menos o Discord e o próprio Much. Windows 10 2004+.',
+              hint: 'Todos os programas, menos o Discord e o próprio PassTime. Windows 10 2004+.',
               badge: 'recomendado',
             },
             { value: 'none', icon: <VolumeX size={18} />, title: 'Sem áudio', hint: 'Transmite só a imagem.' },
@@ -246,7 +246,7 @@ function BrowserPicker({ onStart }: Pick<ScreenShareDialogProps, 'onStart'>) {
         </Button>
       </div>
       <p className="flex items-center gap-2 text-xs text-muted">
-        <Download size={14} /> O app desktop do Much tira o Discord do áudio sozinho, sem precisar configurar nada.
+        <Download size={14} /> O app desktop do PassTime tira o Discord do áudio sozinho, sem precisar configurar nada.
       </p>
     </div>
   );

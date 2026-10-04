@@ -40,7 +40,7 @@ function requireConfigured() {
   if (!spotifyConfigured()) {
     throw new HttpError(
       503,
-      'Falta liberar o Spotify neste Much (Client ID/Secret do app). Depois disso, Conectar abre o login da sua conta.',
+      'Falta liberar o Spotify neste PassTime (Client ID/Secret do app). Depois disso, Conectar abre o login da sua conta.',
     );
   }
 }
@@ -64,12 +64,12 @@ function requireDj(res: Response) {
 function callbackPage(ok: boolean, message: string) {
   const color = ok ? '#1db954' : '#f04452';
   const safe = message.replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c]!);
-  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Much + Spotify</title></head>
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>PassTime + Spotify</title></head>
 <body style="margin:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#0c0d11;color:#fff;font-family:Segoe UI,Arial,sans-serif;text-align:center">
 <div style="font-size:22px;font-weight:700;color:${color}">${ok ? 'Spotify conectado!' : 'Não deu para conectar'}</div>
 <div style="color:#9097a6;max-width:420px">${safe}</div>
 <script>
-try { window.opener && window.opener.postMessage({ type: 'much:spotify', ok: ${ok} }, '*'); } catch (e) {}
+try { window.opener && window.opener.postMessage({ type: 'passtime:spotify', ok: ${ok} }, '*'); } catch (e) {}
 setTimeout(function () { window.close(); }, ${ok ? 1200 : 4000});
 </script>
 </body></html>`;
@@ -87,7 +87,7 @@ spotifyRouter.get(
     const row = state ? queries.takeSpotifyOAuthState.get(state) : undefined;
     if (row) queries.deleteSpotifyOAuthState.run(state);
     if (!row || row.expires_at < Date.now()) {
-      res.status(400).send(callbackPage(false, 'O link de conexão expirou. Volte ao Much e clique em Conectar de novo.'));
+      res.status(400).send(callbackPage(false, 'O link de conexão expirou. Volte ao PassTime e clique em Conectar de novo.'));
       return;
     }
     if (req.query.error || !code) {
@@ -98,7 +98,7 @@ spotifyRouter.get(
       await linkAccount(row.user_id, code, row.redirect_uri);
       // Já começa a acompanhar: a atividade aparece no perfil sem precisar recarregar nada.
       spotifyPresence.watch(row.user_id);
-      res.send(callbackPage(true, 'Pode fechar esta janela e voltar ao Much.'));
+      res.send(callbackPage(true, 'Pode fechar esta janela e voltar ao PassTime.'));
     } catch (err) {
       const message = (err as Error).message;
       // Secret errado: limpa as chaves para o modal de liberar abrir de novo.

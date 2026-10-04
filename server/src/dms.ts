@@ -69,7 +69,7 @@ export function toDmMessage(row: DmRow): DmMessage {
   };
 }
 
-/** Grava a mensagem e entrega na hora para as abas abertas dos dois lados. Quem está offline recebe ao abrir o Much. */
+/** Grava a mensagem e entrega na hora para as abas abertas dos dois lados. Quem está offline recebe ao abrir o PassTime. */
 export function postDm(senderId: number, recipientId: number, kind: DmMessage['kind'], content: string, callDuration: number | null = null) {
   const [a, b] = pairOf(senderId, recipientId);
   const { lastInsertRowid } = queries.insertDm.run(a, b, senderId, kind, content, callDuration, Date.now());

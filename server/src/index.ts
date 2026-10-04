@@ -61,13 +61,13 @@ if (fs.existsSync(config.clientDist)) {
     res.sendFile(path.join(config.clientDist, 'index.html'));
   });
 } else {
-  console.warn(`[much] client/dist não encontrado; rode "npm run build -w client" para servir o site por aqui.`);
+  console.warn(`[passtime] client/dist não encontrado; rode "npm run build -w client" para servir o site por aqui.`);
 }
 
 app.use(errorHandler);
 
 server.listen(config.port, '0.0.0.0', () => {
   const protocol = server instanceof https.Server ? 'https' : 'http';
-  console.log(`[much] servidor em ${protocol}://0.0.0.0:${config.port}`);
-  console.log(`[much] database ${config.dbPath}`);
+  console.log(`[passtime] servidor em ${protocol}://0.0.0.0:${config.port}`);
+  console.log(`[passtime] database ${config.dbPath}`);
 });

@@ -129,7 +129,7 @@ function FriendRow({ friend }: { friend: Friend }) {
         <button
           onClick={() => void callFriend(friend.user)}
           className="hidden rounded-full p-1.5 text-muted transition group-hover:block hover:bg-ok/20 hover:text-ok"
-          title={friend.online ? `Ligar para ${displayName(friend.user)}` : `Ligar para ${displayName(friend.user)} (toca quando entrar no Much)`}
+          title={friend.online ? `Ligar para ${displayName(friend.user)}` : `Ligar para ${displayName(friend.user)} (toca quando entrar no PassTime)`}
           aria-label={`Ligar para ${displayName(friend.user)}`}
         >
           <Phone size={16} />

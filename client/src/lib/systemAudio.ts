@@ -71,7 +71,7 @@ export interface SystemAudioHandle {
 
 /**
  * Inicia o audio-capture.exe via app desktop e devolve uma faixa de áudio.
- * system: tudo que toca no PC, exceto Discord e o próprio Much. spotify: só o Spotify.
+ * system: tudo que toca no PC, exceto Discord e o próprio PassTime. spotify: só o Spotify.
  */
 export async function startSystemAudio(
   onStatus: (status: SystemAudioStatus) => void,
@@ -81,8 +81,8 @@ export async function startSystemAudio(
   if (!api) {
     throw new Error(
       kind === 'spotify'
-        ? 'Tocar música do Spotify na sala só funciona no app desktop do Much'
-        : 'O som do PC sem o Discord só está disponível no app desktop do Much',
+        ? 'Tocar música do Spotify na sala só funciona no app desktop do PassTime'
+        : 'O som do PC sem o Discord só está disponível no app desktop do PassTime',
     );
   }
 

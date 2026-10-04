@@ -43,7 +43,7 @@ export function useSpotifyAccount() {
 }
 
 function openSpotifyPopup() {
-  const popup = window.open('about:blank', 'much-spotify', 'width=520,height=780,noopener=no');
+  const popup = window.open('about:blank', 'passtime-spotify', 'width=520,height=780,noopener=no');
   if (popup) {
     try {
       popup.document.write(
@@ -78,7 +78,7 @@ export async function connectSpotify(popup?: Window | null): Promise<SpotifyAcco
   } else {
     // Popup bloqueado: vai na mesma aba (usuário volta pelo histórico).
     window.location.assign(url);
-    throw new Error('Abra o login do Spotify e autorize a conexão. Depois volte ao Much.');
+    throw new Error('Abra o login do Spotify e autorize a conexão. Depois volte ao PassTime.');
   }
 
   return new Promise<SpotifyAccount>((resolve, reject) => {
@@ -120,7 +120,7 @@ export async function connectSpotify(popup?: Window | null): Promise<SpotifyAcco
       if (Date.now() - started > CONNECT_TIMEOUT_MS) finish(new Error('Tempo esgotado para conectar o Spotify'));
     };
     const onMessage = (event: MessageEvent) => {
-      if ((event.data as { type?: string } | null)?.type === 'much:spotify') void check();
+      if (['passtime:spotify', 'much:spotify'].includes((event.data as { type?: string } | null)?.type ?? '')) void check();
     };
     const timer = window.setInterval(() => void check(), POLL_MS);
     window.addEventListener('message', onMessage);

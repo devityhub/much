@@ -23,9 +23,10 @@ function readConfigUrl(file: string): string | null {
   }
 }
 
-/** Ordem: MUCH_URL > config.json em userData > config.json empacotado > padrão. */
+/** Ordem: PASSTIME_URL / MUCH_URL > config.json em userData > config.json empacotado > padrão. */
 function resolveServerUrl(): string {
   const candidates = [
+    process.env.PASSTIME_URL,
     process.env.MUCH_URL,
     readConfigUrl(path.join(app.getPath('userData'), 'config.json')),
     readConfigUrl(app.isPackaged ? path.join(process.resourcesPath, 'config.json') : path.join(__dirname, '..', 'config.json')),
@@ -60,7 +61,7 @@ function assertTrusted(event: IpcMainInvokeEvent) {
 
 function errorPage(message: string) {
   const html = `<!doctype html><html><body style="margin:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#0c0d11;color:#fff;font-family:Segoe UI,Arial,sans-serif;text-align:center">
-    <div style="font:800 44px Segoe UI,sans-serif;letter-spacing:-1px;background:linear-gradient(90deg,#c4b5fd,#7c3aed);-webkit-background-clip:text;color:transparent">much</div>
+    <div style="font:800 44px Segoe UI,sans-serif;letter-spacing:-1px;background:linear-gradient(90deg,#c4b5fd,#7c3aed);-webkit-background-clip:text;color:transparent">PassTime</div>
     <div style="font-size:20px">Não foi possível conectar ao servidor</div>
     <div style="color:#9097a6">${message}</div>
     <div style="color:#9097a6">Servidor configurado: ${serverUrl.href}</div>
@@ -76,7 +77,7 @@ function createWindow() {
     minWidth: 960,
     minHeight: 600,
     backgroundColor: '#0c0d11',
-    title: 'Much',
+    title: 'PassTime',
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -134,7 +135,7 @@ function setupSession() {
       if (source) callback({ video: source });
       else callback({});
     } catch (err) {
-      console.error('[much] falha ao capturar tela', err);
+      console.error('[passtime] falha ao capturar tela', err);
       callback({});
     }
   });

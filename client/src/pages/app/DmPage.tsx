@@ -50,7 +50,7 @@ function DmHeader({
   const trigger = useUserTrigger();
   const song = useListeningName(friend);
   const name = displayName(friend.user);
-  const later = friend.online ? '' : ' (toca quando entrar no Much)';
+  const later = friend.online ? '' : ' (toca quando entrar no PassTime)';
   if (!user) return null;
   const peer = friend.user;
   const source: ChatSource = {
@@ -185,7 +185,7 @@ export default function DmPage() {
           <Spinner />
         ) : (
           <>
-            <p>Vocês não são amigos no Much.</p>
+            <p>Vocês não são amigos no PassTime.</p>
             <Link to="/app/friends?tab=add" className="font-semibold text-accent hover:underline">
               Adicionar amigo
             </Link>

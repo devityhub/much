@@ -5,7 +5,7 @@ import { app, type WebContents } from 'electron';
 
 export type StartResult = { ok: true } | { ok: false; error: string };
 
-/** system: tudo do PC (menos Discord/Much). spotify: só o Spotify, para o modo DJ. */
+/** system: tudo do PC (menos Discord/PassTime). spotify: só o Spotify, para o modo DJ. */
 export type CaptureKind = 'system' | 'spotify';
 
 export const CAPTURE_KINDS: readonly CaptureKind[] = ['system', 'spotify'];

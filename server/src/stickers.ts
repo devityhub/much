@@ -7,7 +7,7 @@ import { removeUploadIfUnused, UPLOAD_URL_PATTERN } from './images';
 
 const MAX_PER_USER = 60;
 
-/** Pacote que já vem com o Much (arquivos em client/public/stickers). */
+/** Pacote que já vem com o PassTime (arquivos em client/public/stickers). */
 export const BUILTIN_STICKERS = [
   'amor',
   'risada',
@@ -25,7 +25,7 @@ export const BUILTIN_STICKERS = [
 
 const BUILTIN_PATTERN = /^\/stickers\/([a-z0-9-]+)\.svg$/;
 
-/** Aceita figurinha do pacote do Much ou imagem enviada pelo próprio usuário. */
+/** Aceita figurinha do pacote do PassTime ou imagem enviada pelo próprio usuário. */
 export function isStickerUrl(url: string) {
   if (UPLOAD_URL_PATTERN.test(url)) return true;
   const match = BUILTIN_PATTERN.exec(url);

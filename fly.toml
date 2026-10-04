@@ -2,7 +2,7 @@
 #   fly auth login
 #   npm run deploy:fly
 
-app = "much-aestheloja"
+app = "passtime"
 primary_region = "iad"
 
 [build]
@@ -35,7 +35,7 @@ primary_region = "iad"
   path = "/api/health"
 
 [[mounts]]
-  source = "much_data"
+  source = "passtime_data"
   destination = "/data"
   initial_size = "1gb"
 

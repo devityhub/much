@@ -6,7 +6,7 @@ import { formatDuration } from '../../lib/spotify';
 import type { ProfileListening, SpotifyTrack } from '../../lib/types';
 
 /**
- * Cartão do Spotify no perfil. É só vitrine: o Much mostra o que a pessoa está ouvindo
+ * Cartão do Spotify no perfil. É só vitrine: o PassTime mostra o que a pessoa está ouvindo
  * e nunca manda comandos para o Spotify dela.
  */
 

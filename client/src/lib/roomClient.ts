@@ -330,7 +330,7 @@ export class RoomClient {
    */
   async startMusic() {
     if (this.destroyed || this.musicCapture) return;
-    if (desktop && !canCaptureSpotify) throw new Error('Atualize o app desktop do Much para tocar música do Spotify');
+    if (desktop && !canCaptureSpotify) throw new Error('Atualize o app desktop do PassTime para tocar música do Spotify');
     if (!desktop && !canCaptureTab) throw new Error('Para tocar Spotify pelo navegador, use o Chrome ou o Edge no computador');
 
     const onStatus = (status: SystemAudioStatus) => this.onMusicCaptureStatus(status);

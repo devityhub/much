@@ -19,7 +19,7 @@ export type StartSystemAudioResult = { ok: true } | { ok: false; error: string }
 export type CaptureKind = 'system' | 'spotify';
 
 /** API exposta pelo preload do app desktop (desktop/src/preload.ts). */
-export interface MuchDesktopApi {
+export interface PassTimeDesktopApi {
   isDesktop: true;
   platform: string;
   /** Ausente em versões antigas do app, que só capturam o som do sistema. */
@@ -34,10 +34,12 @@ export interface MuchDesktopApi {
 
 declare global {
   interface Window {
-    much?: MuchDesktopApi;
+    passtime?: PassTimeDesktopApi;
+    much?: PassTimeDesktopApi;
   }
 }
 
-export const desktop: MuchDesktopApi | null = typeof window !== 'undefined' ? (window.much ?? null) : null;
+export const desktop: PassTimeDesktopApi | null =
+  typeof window !== 'undefined' ? (window.passtime ?? window.much ?? null) : null;
 
 export const canCaptureSpotify = Boolean(desktop?.captureKinds?.includes('spotify'));

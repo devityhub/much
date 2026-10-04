@@ -27,7 +27,7 @@ export function useUserActions(user: PublicUser) {
     relationship,
     friend,
     inCallWith: active?.kind === 'private' && active.friend?.id === user.id,
-    /** Dá para ligar mesmo offline: toca quando a pessoa abrir o Much. */
+    /** Dá para ligar mesmo offline: toca quando a pessoa abrir o PassTime. */
     canCall: relationship === 'friend',
     call: () => void callFriend(user),
     message: () => navigate(`/app/dm/${user.id}`),

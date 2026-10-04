@@ -46,7 +46,7 @@ interface IncomingCall {
 interface CallContextValue {
   active: ActiveCall | null;
   ringing: boolean;
-  /** O amigo estava offline quando você ligou: toca até ele entrar no Much. */
+  /** O amigo estava offline quando você ligou: toca até ele entrar no PassTime. */
   ringingOffline: boolean;
   incoming: IncomingCall | null;
   deafened: boolean;
@@ -339,7 +339,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
     const stop = dndRef.current ? () => undefined : startRingtone();
     if (!dndRef.current) {
       const title = incoming.group ? `${displayName(incoming.from)} começou uma chamada em ${incoming.group.name}` : `${displayName(incoming.from)} está te ligando`;
-      notify(title, 'Abra o Much para atender.');
+      notify(title, 'Abra o PassTime para atender.');
     }
     const timer = window.setTimeout(() => setIncoming(null), RING_TIMEOUT_MS);
     return () => {

@@ -82,7 +82,7 @@ function UnlockSpotify({
       return;
     }
     // Popup no mesmo clique — senão o navegador bloqueia o login do Spotify.
-    const popup = window.open('about:blank', 'much-spotify', 'width=520,height=780,noopener=no');
+    const popup = window.open('about:blank', 'passtime-spotify', 'width=520,height=780,noopener=no');
     setBusy(true);
     try {
       // O servidor valida ID+Secret com o Spotify antes de gravar.
@@ -109,7 +109,7 @@ function UnlockSpotify({
         <div className="mb-4 flex items-start gap-3">
           <SpotifyLogo size={40} />
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-white">Liberar Spotify neste Much</p>
+            <p className="font-semibold text-white">Liberar Spotify neste PassTime</p>
             <p className="text-sm text-muted">Só uma vez. Depois todo mundo só clica em Conectar e faz login na conta.</p>
           </div>
           <button type="button" onClick={onCancel} className="rounded-md p-1 text-muted hover:bg-white/10 hover:text-white">

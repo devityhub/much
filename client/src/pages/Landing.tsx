@@ -156,7 +156,7 @@ export default function Landing() {
           transition={{ delay: 0.18 }}
           className="mx-auto mt-6 max-w-2xl text-lg text-muted"
         >
-          Much é o lugar para assistir, jogar e conversar junto: salas públicas, chamadas privadas com amigos e transmissão de tela
+          PassTime é o lugar para assistir, jogar e conversar junto: salas públicas, chamadas privadas com amigos e transmissão de tela
           com o áudio de tudo — sem a sua call vazando.
         </motion.p>
         <motion.div
@@ -207,7 +207,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <footer className="relative z-10 border-t border-line py-8 text-center text-sm text-faint">Much · feito para transmitir junto</footer>
+      <footer className="relative z-10 border-t border-line py-8 text-center text-sm text-faint">PassTime · feito para transmitir junto</footer>
     </div>
   );
 }

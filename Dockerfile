@@ -1,4 +1,4 @@
-# Much — build e serve API + site na mesma porta (Socket.IO, SQLite, uploads).
+# PassTime — build e serve API + site na mesma porta (Socket.IO, SQLite, uploads).
 FROM node:22-bookworm-slim AS build
 
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ \
@@ -19,7 +19,7 @@ FROM node:22-bookworm-slim AS runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
   && rm -rf /var/lib/apt/lists/* \
-  && useradd --system --uid 10001 --home /app --shell /usr/sbin/nologin much
+  && useradd --system --uid 10001 --home /app --shell /usr/sbin/nologin passtime
 
 WORKDIR /app
 ENV NODE_ENV=production \
@@ -27,14 +27,14 @@ ENV NODE_ENV=production \
     DB_PATH=/data/streamflix.db \
     UPLOADS_DIR=/data/uploads
 
-COPY --from=build --chown=much:much /app/package.json /app/package-lock.json ./
-COPY --from=build --chown=much:much /app/node_modules ./node_modules
-COPY --from=build --chown=much:much /app/server ./server
-COPY --from=build --chown=much:much /app/client/dist ./client/dist
+COPY --from=build --chown=passtime:passtime /app/package.json /app/package-lock.json ./
+COPY --from=build --chown=passtime:passtime /app/node_modules ./node_modules
+COPY --from=build --chown=passtime:passtime /app/server ./server
+COPY --from=build --chown=passtime:passtime /app/client/dist ./client/dist
 
-RUN mkdir -p /data/uploads && chown -R much:much /data
+RUN mkdir -p /data/uploads && chown -R passtime:passtime /data
 
-USER much
+USER passtime
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||8080)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"

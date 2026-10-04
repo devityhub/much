@@ -101,7 +101,7 @@ function AddFriend() {
             <Avatar key={color} nick={['M', 'U', 'C'][i]} avatar={color} size={56} className="ring-4 ring-bg rounded-full" />
           ))}
         </motion.div>
-        <p className="text-sm">Chame a galera para o Much e transmitam juntos.</p>
+        <p className="text-sm">Chame a galera para o PassTime e transmitam juntos.</p>
       </div>
     </div>
   );
@@ -298,7 +298,7 @@ export default function FriendsPage() {
                       <MessageCircle size={17} />
                     </RowAction>
                     <RowAction
-                      label={friend.online ? 'Chamada privada' : 'Chamada privada (toca quando entrar no Much)'}
+                      label={friend.online ? 'Chamada privada' : 'Chamada privada (toca quando entrar no PassTime)'}
                       tone="ok"
                       onClick={() => void callFriend(friend.user)}
                     >
@@ -317,7 +317,7 @@ export default function FriendsPage() {
                 ))}
               </AnimatePresence>
               {!list.length && (
-                <EmptyState text={friends.length ? 'Ninguém online agora.' : 'Você ainda não tem amigos no Much. Adicione alguém pelo nick!'} />
+                <EmptyState text={friends.length ? 'Ninguém online agora.' : 'Você ainda não tem amigos no PassTime. Adicione alguém pelo nick!'} />
               )}
             </div>
           )}

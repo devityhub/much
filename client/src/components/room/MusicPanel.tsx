@@ -232,7 +232,7 @@ export default function MusicPanel() {
           <p className="mt-2 rounded-lg bg-warn/15 px-2.5 py-1.5 text-xs text-warn">
             {desktop
               ? 'Não achamos o Spotify tocando no seu PC. Abra o app do Spotify (não o site) e dê play para a sala ouvir.'
-              : 'A aba compartilhada está sem som. Confira se escolheu a aba do open.spotify.com com "Compartilhar áudio da aba" ligado. Se continuar mudo, o Spotify bloqueou a captura neste navegador: use o app desktop do Much.'}
+              : 'A aba compartilhada está sem som. Confira se escolheu a aba do open.spotify.com com "Compartilhar áudio da aba" ligado. Se continuar mudo, o Spotify bloqueou a captura neste navegador: use o app desktop do PassTime.'}
           </p>
         )}
         {music.error && <p className="mt-2 rounded-lg bg-danger/15 px-2.5 py-1.5 text-xs text-danger">{music.error}</p>}

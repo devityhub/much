@@ -6,7 +6,7 @@ export interface Sticker {
   name: string;
 }
 
-/** Pacote que já vem com o Much (arquivos em public/stickers). */
+/** Pacote que já vem com o PassTime (arquivos em public/stickers). */
 export const BUILTIN_STICKERS = [
   { id: 'amor', name: 'Amor' },
   { id: 'risada', name: 'Risada' },

@@ -1,9 +1,9 @@
 {
-  "name": "much-desktop",
-  "productName": "Much",
+  "name": "passtime-desktop",
+  "productName": "PassTime",
   "private": true,
   "version": "1.0.0",
-  "description": "App desktop do Much: transmite a tela com o audio do PC inteiro, menos o Discord.",
+  "description": "App desktop do PassTime: transmite a tela com o audio do PC inteiro, menos o Discord.",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -18,8 +18,8 @@
     "typescript": "^5.6.3"
   },
   "build": {
-    "appId": "com.much.desktop",
-    "productName": "Much",
+    "appId": "com.passtime.desktop",
+    "productName": "PassTime",
     "files": [
       "dist/**/*",
       "package.json"

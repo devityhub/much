@@ -53,7 +53,7 @@ export default function CreateRoomModal({ room, onClose }: { room?: Room | null;
   return (
     <Modal
       title={editing ? 'Editar sala' : 'Criar sala pública'}
-      subtitle={editing ? 'Mude o nome, a descrição, a capa e o ícone da sala.' : 'Qualquer pessoa do Much pode entrar e transmitir aqui.'}
+      subtitle={editing ? 'Mude o nome, a descrição, a capa e o ícone da sala.' : 'Qualquer pessoa do PassTime pode entrar e transmitir aqui.'}
       onClose={onClose}
     >
       <form onSubmit={submit} className="space-y-5">

@@ -8,7 +8,7 @@ export const UPLOAD_URL_PATTERN = /^\/uploads\/[a-f0-9]{24}\.(png|jpg|webp|gif)$
 
 fs.mkdirSync(config.uploadsDir, { recursive: true });
 
-/** URL de imagem enviada ao Much, ou null para remover. */
+/** URL de imagem enviada ao PassTime, ou null para remover. */
 export const uploadUrl = z.string().regex(UPLOAD_URL_PATTERN, 'Imagem inválida').nullable();
 
 export function removeUploadIfUnused(url: string | null | undefined) {

@@ -167,7 +167,7 @@ function StickerTab({ onSticker }: { onSticker: (url: string) => void }) {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
       <section>
-        <h4 className="pb-1.5 text-[11px] font-bold tracking-wider text-faint uppercase">Pacote do Much</h4>
+        <h4 className="pb-1.5 text-[11px] font-bold tracking-wider text-faint uppercase">Pacote do PassTime</h4>
         <div className="grid grid-cols-4 gap-1.5">
           {BUILTIN_STICKERS.map((sticker) => (
             <button

@@ -8,7 +8,7 @@ const CLIENT_SECRET_KEY = 'spotify.client_secret';
 export interface SpotifyCredentials {
   clientId: string;
   clientSecret: string;
-  /** Fixa no .env; quando vazia, cada pedido usa o endereço por onde o Much foi aberto. */
+  /** Fixa no .env; quando vazia, cada pedido usa o endereço por onde o PassTime foi aberto. */
   redirectUri: string;
 }
 

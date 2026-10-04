@@ -87,10 +87,10 @@ function badgesOf(profile: UserProfile): Badge[] {
   const badges: Badge[] = [];
   const days = daysSince(profile.user.createdAt);
   if (profile.user.id <= 5) {
-    badges.push({ icon: <Rocket size={14} />, label: 'Pioneiro', hint: 'Uma das primeiras contas do Much', color: 'text-accent-2' });
+    badges.push({ icon: <Rocket size={14} />, label: 'Pioneiro', hint: 'Uma das primeiras contas do PassTime', color: 'text-accent-2' });
   }
   if (days >= 365) {
-    badges.push({ icon: <Medal size={14} />, label: 'Veterano', hint: `${Math.floor(days / 365)} ano(s) de Much`, color: 'text-warn' });
+    badges.push({ icon: <Medal size={14} />, label: 'Veterano', hint: `${Math.floor(days / 365)} ano(s) de PassTime`, color: 'text-warn' });
   } else if (days <= 7) {
     badges.push({ icon: <Sparkles size={14} />, label: 'Novo por aqui', hint: 'Entrou nos últimos 7 dias', color: 'text-ok' });
   }
@@ -106,7 +106,7 @@ function badgesOf(profile: UserProfile): Badge[] {
     });
   }
   if (profile.stats.friends >= 10) {
-    badges.push({ icon: <Users size={14} />, label: 'Popular', hint: `${profile.stats.friends} amigos no Much`, color: 'text-accent' });
+    badges.push({ icon: <Users size={14} />, label: 'Popular', hint: `${profile.stats.friends} amigos no PassTime`, color: 'text-accent' });
   }
   if (profile.stats.stickers >= 5) {
     badges.push({ icon: <Sticker size={14} />, label: 'Colecionador', hint: `${profile.stats.stickers} figurinhas próprias`, color: 'text-accent-2' });
@@ -314,7 +314,7 @@ function Content({ seed, close }: { seed: PublicUser; close: () => void }) {
       <div className="space-y-1.5 text-xs text-muted">
         {created && (
           <p className="flex items-center gap-2">
-            <CalendarDays size={13} className="shrink-0 text-faint" /> No Much desde {created}
+            <CalendarDays size={13} className="shrink-0 text-faint" /> No PassTime desde {created}
           </p>
         )}
         {since && (

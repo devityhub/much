@@ -239,7 +239,7 @@ export default function ProfileCard({
         {since && !Number.isNaN(since.getTime()) && (
           <p className="mt-3 flex items-center gap-1.5 text-xs text-faint">
             <CalendarDays size={13} />
-            No Much desde {since.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
+            No PassTime desde {since.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
           </p>
         )}
 

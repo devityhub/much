@@ -1,4 +1,4 @@
-# Much
+# PassTime
 
 Voz, câmera e transmissão de tela com amigos, no estilo Discord:
 
@@ -13,7 +13,7 @@ Voz, câmera e transmissão de tela com amigos, no estilo Discord:
 - **Som do PC inteiro, menos o Discord:** quem transmite manda o áudio de tudo (jogo, música, vídeo) sem vazar a call do Discord.
 
 ```
-streamflix/
+passtime/
   server/                 Node + Express + Socket.IO + SQLite (contas, amigos, salas, chamadas, sinalização WebRTC)
   client/                 React + Vite + Tailwind + Motion (site)
   desktop/                Electron (app do streamer, seletor de tela, ponte do áudio)
@@ -22,7 +22,7 @@ streamflix/
 
 ## Como funciona o áudio sem o Discord
 
-- **App desktop (recomendado, Windows 10 2004 / build 19041 ou mais novo):** o `audio-capture.exe` lista as sessões de áudio do Windows e captura cada programa separadamente pela API *Process Loopback*. O Discord e o próprio Much ficam de fora, e o resto é mixado em PCM 48 kHz estéreo. O Much é excluído para não recapturar a voz dos outros participantes, o que causaria eco. É só escolher "Som do PC, sem Discord" ao transmitir.
+- **App desktop (recomendado, Windows 10 2004 / build 19041 ou mais novo):** o `audio-capture.exe` lista as sessões de áudio do Windows e captura cada programa separadamente pela API *Process Loopback*. O Discord e o próprio PassTime ficam de fora, e o resto é mixado em PCM 48 kHz estéreo. O PassTime é excluído para não recapturar a voz dos outros participantes, o que causaria eco. É só escolher "Som do PC, sem Discord" ao transmitir.
 - **Navegador (Chrome/Edge), opção "Som do PC inteiro":** o navegador captura tudo que toca na **saída de áudio padrão do Windows**, sem conseguir separar programas. Para o Discord ficar de fora, ele precisa tocar em outra saída:
   1. No Discord: *Configurações → Voz e vídeo → Dispositivo de saída* e escolha um dispositivo que **não** seja o padrão do Windows (ex.: o fone, se o padrão é a caixa de som).
   2. Deixe jogos, música e vídeos na saída padrão.
@@ -53,16 +53,16 @@ Abra http://127.0.0.1:43123, crie uma conta, adicione um amigo pelo nick ou crie
 native\audio-capture\build.bat   # gera native/audio-capture/build/Release/audio-capture.exe
 cd desktop
 npm install
-npm start                        # abre o Much apontando para http://127.0.0.1:43123
+npm start                        # abre o PassTime apontando para http://127.0.0.1:43123
 ```
 
-Para apontar para outro servidor, use a variável `MUCH_URL` ou edite `desktop/config.json`:
+Para apontar para outro servidor, use a variável `PASSTIME_URL` (ou `MUCH_URL`) ou edite `desktop/config.json`:
 
 ```json
-{ "serverUrl": "https://much.seudominio.com" }
+{ "serverUrl": "https://passtime.seudominio.com" }
 ```
 
-Depois de instalado, o app também lê `%APPDATA%\Much\config.json`.
+Depois de instalado, o app também lê `%APPDATA%\PassTime\config.json`.
 
 Para testar a captura sem o app:
 
@@ -91,12 +91,12 @@ Os túneis `*.trycloudflare.com` expiram. Para uma URL fixa com HTTPS:
 npm run deploy:fly
 ```
 
-O script faz login (se precisar), cria o app `much-aestheloja`, um volume de 1 GB para o SQLite/uploads e publica em **`https://much-aestheloja.fly.dev`**.
+O script faz login (se precisar), cria o app `passtime`, um volume de 1 GB para o SQLite/uploads e publica em **`https://passtime.fly.dev`**.
 
 3. No [Spotify Developer](https://developer.spotify.com/dashboard), adicione o Redirect URI:
 
 ```
-https://much-aestheloja.fly.dev/api/spotify/callback
+https://passtime.fly.dev/api/spotify/callback
 ```
 
 Arquivos: `Dockerfile`, `fly.toml`, `scripts/deploy-fly.sh`. Alternativa: `railway.toml` no [Railway](https://railway.app) (conecte o repo e defina `JWT_SECRET` + volume em `/data`).
@@ -106,7 +106,7 @@ Arquivos: `Dockerfile`, `fly.toml`, `scripts/deploy-fly.sh`. Alternativa: `railw
 npm run deploy:fly
 
 # logs
-fly logs -a much-aestheloja
+fly logs -a passtime
 ```
 
 Gerar o instalador do app desktop (antes, edite `desktop/config.json` com a URL de produção):
@@ -120,7 +120,7 @@ cd desktop && npm run dist     # instalador em desktop/release/
 
 Câmera, microfone e tela só funcionam em `https://` ou em `localhost`. Opções:
 
-- Um proxy reverso com certificado automático, como o [Caddy](https://caddyserver.com): `caddy reverse-proxy --from much.seudominio.com --to localhost:43124`
+- Um proxy reverso com certificado automático, como o [Caddy](https://caddyserver.com): `caddy reverse-proxy --from passtime.seudominio.com --to localhost:43124`
 - Ou `SSL_KEY_PATH` / `SSL_CERT_PATH` no `.env` para o próprio servidor usar HTTPS.
 
 O app desktop aceita um servidor `http://` na rede local, porque libera essa origem como segura.
@@ -138,26 +138,26 @@ O app desktop aceita um servidor `http://` na rede local, porque libera essa ori
 | `TURN_URLS` / `TURN_USERNAME` / `TURN_CREDENTIAL` | - | Servidor TURN (recomendado na internet) |
 | `SSL_KEY_PATH` / `SSL_CERT_PATH` | - | Certificado para HTTPS direto no Node |
 | `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | - | App do Spotify para o modo DJ. Opcional: dá para cadastrar em Configurações › Conexões (veja abaixo) |
-| `SPOTIFY_REDIRECT_URI` | endereço do pedido | Só se o callback precisar de um endereço diferente do usado para abrir o Much |
+| `SPOTIFY_REDIRECT_URI` | endereço do pedido | Só se o callback precisar de um endereço diferente do usado para abrir o PassTime |
 | `SPOTIFY_API_URL` / `SPOTIFY_ACCOUNTS_URL` | API oficial | Só para testes com um Spotify falso |
 
 ### Spotify (atividade no perfil e modo DJ)
 
-Qualquer conta pode ligar o próprio Spotify em **Configurações › Conexões**. A partir daí o servidor lê "tocando agora" dessa pessoa enquanto ela está online (a cada 6s com música, 20s sem) e manda o que mudou para os amigos dela pelo evento `spotify:presence`. A música aparece no cartão do perfil, no perfil completo e nas listas de amigos, passando na frente de "Na sala X". É só leitura: o Much não manda nenhum comando para o Spotify de quem está sendo visto. Quem fica invisível ou desconecta a conta para de transmitir, e só amigos veem.
+Qualquer conta pode ligar o próprio Spotify em **Configurações › Conexões**. A partir daí o servidor lê "tocando agora" dessa pessoa enquanto ela está online (a cada 6s com música, 20s sem) e manda o que mudou para os amigos dela pelo evento `spotify:presence`. A música aparece no cartão do perfil, no perfil completo e nas listas de amigos, passando na frente de "Na sala X". É só leitura: o PassTime não manda nenhum comando para o Spotify de quem está sendo visto. Quem fica invisível ou desconecta a conta para de transmitir, e só amigos veem.
 
 Quem conecta o Spotify e clica no botão verde da chamada vira o DJ: o app desktop captura só o áudio do Spotify e manda para todos da sala ou chamada. No Chrome ou no Edge, o DJ abre o [open.spotify.com](https://open.spotify.com) em outra aba e escolhe essa aba com "Compartilhar áudio da aba" ligado. Os outros veem o card "Tocando agora" e podem mutar ou baixar o volume.
 
 O cadastro é feito em **Configurações › Conexões**, pela primeira conta criada no servidor (a dona da instância):
 
 1. Entre em [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) e clique em **Create app**.
-2. Em **Redirect URIs**, cole o endereço que a tela de Conexões mostra (botão **Copiar**). É o próprio endereço do Much com `/api/spotify/callback`, por exemplo `http://127.0.0.1:5173/api/spotify/callback` em desenvolvimento ou `https://much.seudominio.com/api/spotify/callback` em produção. O Spotify não aceita `localhost`, só `127.0.0.1`.
+2. Em **Redirect URIs**, cole o endereço que a tela de Conexões mostra (botão **Copiar**). É o próprio endereço do PassTime com `/api/spotify/callback`, por exemplo `http://127.0.0.1:5173/api/spotify/callback` em desenvolvimento ou `https://passtime.seudominio.com/api/spotify/callback` em produção. O Spotify não aceita `localhost`, só `127.0.0.1`.
 3. Marque **Web API** e salve. Copie o **Client ID** e o **Client secret**.
 4. Cole os dois em Conexões e clique em **Salvar e conectar**. As chaves ficam no banco e valem para todos do servidor; não precisa reiniciar nada.
 5. Enquanto o app estiver em **Development mode**, só as contas do Spotify adicionadas em **User Management** (até 25) conseguem conectar.
 
 Em servidores onde o segredo precisa vir de fora (Docker, CI), preencha `SPOTIFY_CLIENT_ID` e `SPOTIFY_CLIENT_SECRET` no `server/.env`: aí o .env manda e a tela de Conexões passa a só mostrar o estado.
 
-Limites: no app desktop, o DJ precisa do Windows 10 2004+ ou 11, com o app do Spotify aberto. No navegador, só Chrome e Edge no computador compartilham o áudio de abas (Firefox e Safari não). O Spotify Web usa proteção contra cópia (DRM), e em algumas versões a aba compartilhada pode ficar muda. Nesse caso o card avisa e o DJ deve usar o app desktop. Pausar, pular e buscar pelo Much exigem Spotify Premium. Com conta Free, o card e o áudio funcionam, e o controle é feito no próprio Spotify. Retransmitir o áudio do Spotify para outras pessoas vai contra os termos de uso do Spotify.
+Limites: no app desktop, o DJ precisa do Windows 10 2004+ ou 11, com o app do Spotify aberto. No navegador, só Chrome e Edge no computador compartilham o áudio de abas (Firefox e Safari não). O Spotify Web usa proteção contra cópia (DRM), e em algumas versões a aba compartilhada pode ficar muda. Nesse caso o card avisa e o DJ deve usar o app desktop. Pausar, pular e buscar pelo PassTime exigem Spotify Premium. Com conta Free, o card e o áudio funcionam, e o controle é feito no próprio Spotify. Retransmitir o áudio do Spotify para outras pessoas vai contra os termos de uso do Spotify.
 
 ### TURN (coturn)
 
@@ -167,15 +167,15 @@ A conexão é P2P. Algumas redes, como NAT simétrico, 4G e redes corporativas, 
 listening-port=3478
 fingerprint
 lt-cred-mech
-user=much:senha-do-turn
-realm=much.seudominio.com
+user=passtime:senha-do-turn
+realm=passtime.seudominio.com
 ```
 
 E no `server/.env`:
 
 ```
-TURN_URLS=turn:much.seudominio.com:3478?transport=udp,turn:much.seudominio.com:3478?transport=tcp
-TURN_USERNAME=much
+TURN_URLS=turn:passtime.seudominio.com:3478?transport=udp,turn:passtime.seudominio.com:3478?transport=tcp
+TURN_USERNAME=passtime
 TURN_CREDENTIAL=senha-do-turn
 ```
 

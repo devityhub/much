@@ -12,8 +12,8 @@ function subscribe<T>(channel: string, callback: (payload: T) => void) {
 
 const kindOf = (kind?: CaptureKind): CaptureKind => (kind === 'spotify' ? 'spotify' : 'system');
 
-// Contrato espelhado em client/src/lib/desktop.ts (MuchDesktopApi).
-contextBridge.exposeInMainWorld('much', {
+// Contrato espelhado em client/src/lib/desktop.ts (PassTimeDesktopApi).
+const desktopApi = {
   isDesktop: true,
   platform: process.platform,
   captureKinds: ['system', 'spotify'],
@@ -23,4 +23,6 @@ contextBridge.exposeInMainWorld('much', {
   stopSystemAudio: (kind?: CaptureKind) => ipcRenderer.invoke('system-audio:stop', kindOf(kind)),
   onSystemAudioData: (callback: (chunk: Uint8Array) => void, kind?: CaptureKind) => subscribe(`${kindOf(kind)}-audio:data`, callback),
   onSystemAudioStatus: (callback: (status: unknown) => void, kind?: CaptureKind) => subscribe(`${kindOf(kind)}-audio:status`, callback),
-});
+};
+contextBridge.exposeInMainWorld('passtime', desktopApi);
+contextBridge.exposeInMainWorld('much', desktopApi);

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sobe o Much no Fly.io com URL permanente https://<app>.fly.dev
+# Sobe o PassTime no Fly.io com URL permanente https://<app>.fly.dev
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -14,7 +14,7 @@ if ! command -v fly >/dev/null 2>&1 && ! command -v flyctl >/dev/null 2>&1; then
 fi
 
 FLY="$(command -v fly || command -v flyctl)"
-APP="${FLY_APP:-much-aestheloja}"
+APP="${FLY_APP:-passtime}"
 REGION="${FLY_REGION:-iad}"
 
 if ! "$FLY" auth whoami >/dev/null 2>&1; then
@@ -45,9 +45,9 @@ if ! "$FLY" status -a "$APP" >/dev/null 2>&1; then
 fi
 
 # Volume persistente para SQLite + uploads
-if ! "$FLY" volumes list -a "$APP" 2>/dev/null | grep -q much_data; then
-  echo "Criando volume much_data…"
-  "$FLY" volumes create much_data --region "$REGION" --size 1 -a "$APP" -y
+if ! "$FLY" volumes list -a "$APP" 2>/dev/null | grep -q passtime_data; then
+  echo "Criando volume passtime_data…"
+  "$FLY" volumes create passtime_data --region "$REGION" --size 1 -a "$APP" -y
 fi
 
 if ! "$FLY" secrets list -a "$APP" 2>/dev/null | grep -q JWT_SECRET; then
@@ -65,7 +65,7 @@ if [ -z "$HOSTNAME" ]; then
 fi
 
 echo
-echo "Much no ar: https://${HOSTNAME}"
+echo "PassTime no ar: https://${HOSTNAME}"
 echo "Spotify Redirect URI: https://${HOSTNAME}/api/spotify/callback"
 echo "Cole essa URI no app do Spotify Developer e (opcional) em SPOTIFY_REDIRECT_URI:"
 echo "  fly secrets set SPOTIFY_REDIRECT_URI=https://${HOSTNAME}/api/spotify/callback -a $APP"

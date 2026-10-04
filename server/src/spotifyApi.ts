@@ -48,7 +48,7 @@ function mapTokenError(data: TokenResponse): HttpError {
   let message = data.error_description || 'O Spotify recusou a conexão';
   if (raw.includes('invalid client') || raw.includes('invalid_client') || raw.includes('secret')) {
     message =
-      'Client Secret inválido. No painel do Spotify clique em “Ver segredo do cliente”, copie o secret (não o Client ID) e cole de novo no Much.';
+      'Client Secret inválido. No painel do Spotify clique em “Ver segredo do cliente”, copie o secret (não o Client ID) e cole de novo no PassTime.';
   }
   const err = new HttpError(400, message);
   (err as HttpError & { code?: string }).code = data.error || 'invalid_client';
