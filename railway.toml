@@ -1,0 +1,10 @@
+# Alternativa ao Fly: https://railway.app — conecte o repo e use este arquivo.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

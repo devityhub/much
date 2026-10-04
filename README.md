@@ -80,6 +80,35 @@ npm run build          # gera client/dist e server/dist
 npm start              # o servidor serve a API, o Socket.IO e o site na mesma porta
 ```
 
+### Link permanente (Fly.io)
+
+Os túneis `*.trycloudflare.com` expiram. Para uma URL fixa com HTTPS:
+
+1. Crie uma conta em [fly.io](https://fly.io) (plano gratuito basta).
+2. No projeto:
+
+```bash
+npm run deploy:fly
+```
+
+O script faz login (se precisar), cria o app `much-aestheloja`, um volume de 1 GB para o SQLite/uploads e publica em **`https://much-aestheloja.fly.dev`**.
+
+3. No [Spotify Developer](https://developer.spotify.com/dashboard), adicione o Redirect URI:
+
+```
+https://much-aestheloja.fly.dev/api/spotify/callback
+```
+
+Arquivos: `Dockerfile`, `fly.toml`, `scripts/deploy-fly.sh`. Alternativa: `railway.toml` no [Railway](https://railway.app) (conecte o repo e defina `JWT_SECRET` + volume em `/data`).
+
+```bash
+# redeploy depois de mudanças
+npm run deploy:fly
+
+# logs
+fly logs -a much-aestheloja
+```
+
 Gerar o instalador do app desktop (antes, edite `desktop/config.json` com a URL de produção):
 
 ```bash
