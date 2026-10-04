@@ -12,7 +12,14 @@ interface AuthContextValue {
   user: SelfUser | null;
   loading: boolean;
   login: (login: string, password: string) => Promise<void>;
-  register: (nick: string, email: string, password: string, avatar?: string) => Promise<void>;
+  register: (
+    nick: string,
+    email: string,
+    password: string,
+    avatar?: string,
+    displayName?: string,
+    bornOn?: { day: number; month: number; year: number },
+  ) => Promise<void>;
   updateProfile: (patch: ProfilePatch) => Promise<void>;
   changePassword: (current: string, next: string) => Promise<void>;
   logout: () => void;
@@ -47,8 +54,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const register = useCallback(
-    async (nick: string, email: string, password: string, avatar?: string) => {
-      handleAuth(await api<AuthResponse>('/auth/register', { method: 'POST', body: { nick, email, password, avatar } }));
+    async (
+      nick: string,
+      email: string,
+      password: string,
+      avatar?: string,
+      displayName?: string,
+      bornOn?: { day: number; month: number; year: number },
+    ) => {
+      handleAuth(
+        await api<AuthResponse>('/auth/register', {
+          method: 'POST',
+          body: { nick, email, password, avatar, displayName, bornOn },
+        }),
+      );
     },
     [handleAuth],
   );

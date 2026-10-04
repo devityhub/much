@@ -278,8 +278,8 @@ export const queries = {
   userByNickOrEmail: db.prepare<[string, string], Pick<UserRow, 'nick' | 'email'>>(
     'SELECT nick, email FROM users WHERE nick = ? OR email = ?',
   ),
-  insertUser: db.prepare<[string, string, string, string]>(
-    'INSERT INTO users (nick, email, password_hash, avatar) VALUES (?, ?, ?, ?)',
+  insertUser: db.prepare<[string, string, string, string, string]>(
+    'INSERT INTO users (nick, email, password_hash, avatar, display_name) VALUES (?, ?, ?, ?, ?)',
   ),
   updatePassword: db.prepare<[string, number]>('UPDATE users SET password_hash = ? WHERE id = ?'),
   updateProfile: db.prepare<

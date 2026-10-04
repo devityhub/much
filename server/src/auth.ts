@@ -11,6 +11,18 @@ import { music } from './music';
 import { presence } from './presence';
 import { spotifyPresence } from './spotifyPresence';
 
+function daysInMonth(year: number, month: number) {
+  return new Date(year, month, 0).getDate();
+}
+
+function yearsOld(year: number, month: number, day: number) {
+  const today = new Date();
+  let age = today.getFullYear() - year;
+  const monthDiff = today.getMonth() + 1 - month;
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < day)) age -= 1;
+  return age;
+}
+
 const registerSchema = z.object({
   nick: z
     .string({ required_error: 'Informe um nick' })
@@ -24,6 +36,22 @@ const registerSchema = z.object({
     .min(6, 'A senha precisa ter pelo menos 6 caracteres')
     .max(100, 'Senha muito longa'),
   avatar: z.enum(AVATARS).optional(),
+  displayName: z.string().trim().max(32, 'O nome de exibição pode ter no máximo 32 caracteres').optional(),
+  bornOn: z
+    .object(
+      {
+        day: z.number({ required_error: 'Informe o dia', invalid_type_error: 'Informe o dia' }).int().min(1).max(31),
+        month: z.number({ required_error: 'Informe o mês', invalid_type_error: 'Informe o mês' }).int().min(1).max(12),
+        year: z
+          .number({ required_error: 'Informe o ano', invalid_type_error: 'Informe o ano' })
+          .int()
+          .min(1920)
+          .max(new Date().getFullYear()),
+      },
+      { required_error: 'Informe sua data de nascimento', invalid_type_error: 'Informe sua data de nascimento' },
+    )
+    .refine((d) => d.day <= daysInMonth(d.year, d.month), 'Essa data de nascimento não existe')
+    .refine((d) => yearsOld(d.year, d.month, d.day) >= 13, 'Você precisa ter pelo menos 13 anos para criar uma conta no PassTime'),
 });
 
 const loginSchema = z.object({
@@ -88,7 +116,7 @@ authRouter.post(
     }
     const hash = await bcrypt.hash(data.password, 10);
     const avatar = data.avatar ?? AVATARS[Math.floor(Math.random() * AVATARS.length)];
-    const result = queries.insertUser.run(data.nick, data.email, hash, avatar);
+    const result = queries.insertUser.run(data.nick, data.email, hash, avatar, data.displayName ?? '');
     const user = queries.userById.get(Number(result.lastInsertRowid))!;
     res.status(201).json({ token: signToken(user.id), user: toSelfUser(user) });
   }),
