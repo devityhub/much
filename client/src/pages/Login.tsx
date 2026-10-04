@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import AuthLayout, { AuthError, AuthInput, AuthLabel, AuthLink, AuthSubmit } from '../components/AuthLayout';
+import AuthLayout, { AuthError, AuthInput, AuthLabel, AuthSubmit } from '../components/AuthLayout';
 import AuthQr from '../components/AuthQr';
 import { useAuth } from '../lib/auth';
 
@@ -64,11 +64,20 @@ export default function Login() {
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 required
               />
-              <AuthLink className="mt-2 text-sm" onClick={() => setHint((v) => !v)}>
+              <button
+                type="button"
+                className="mt-2 block text-left text-sm font-semibold text-accent hover:underline"
+                aria-expanded={hint}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setHint((v) => !v);
+                }}
+              >
                 Esqueceu a senha?
-              </AuthLink>
+              </button>
               {hint && (
-                <p className="mt-2 text-xs leading-relaxed text-muted">
+                <p className="mt-2 rounded-xl bg-surface-3 px-3 py-2 text-xs leading-relaxed text-muted">
                   Por enquanto o PassTime não reabre a conta sozinho. Use o e-mail com que você se cadastrou. Se travar de vez,
                   fale com quem administra este servidor.
                 </p>
