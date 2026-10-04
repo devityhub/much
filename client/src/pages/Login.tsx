@@ -66,6 +66,7 @@ export default function Login() {
         <Link to="/register" state={location.state} className="font-semibold text-accent hover:underline">
           Cadastre-se
         </Link>
+        . Se o email já estiver cadastrado, entre com o nick em vez de criar de novo.
       </p>
     </AuthLayout>
   );

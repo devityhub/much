@@ -14,6 +14,7 @@ interface AuthContextValue {
   login: (login: string, password: string) => Promise<void>;
   register: (nick: string, email: string, password: string, avatar?: string) => Promise<void>;
   updateProfile: (patch: ProfilePatch) => Promise<void>;
+  changePassword: (current: string, next: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -57,6 +58,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(user);
   }, []);
 
+  const changePassword = useCallback(async (current: string, next: string) => {
+    await api('/auth/password', { method: 'PATCH', body: { current, next } });
+  }, []);
+
   const logout = useCallback(() => {
     tokenStore.clear();
     closeSocket();
@@ -64,8 +69,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, login, register, updateProfile, logout }),
-    [user, loading, login, register, updateProfile, logout],
+    () => ({ user, loading, login, register, updateProfile, changePassword, logout }),
+    [user, loading, login, register, updateProfile, changePassword, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

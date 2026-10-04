@@ -105,6 +105,29 @@ authRouter.post(
   }),
 );
 
+authRouter.patch(
+  '/password',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const me = currentUser(res);
+    const data = z
+      .object({
+        current: z.string({ required_error: 'Informe a senha atual' }).min(1, 'Informe a senha atual'),
+        next: z
+          .string({ required_error: 'Informe a senha nova' })
+          .min(6, 'A senha precisa ter pelo menos 6 caracteres')
+          .max(100, 'Senha muito longa'),
+      })
+      .parse(req.body);
+    const row = queries.userById.get(me.id);
+    if (!row) throw new HttpError(401, 'Sessão expirada, entre novamente');
+    const ok = await bcrypt.compare(data.current, row.password_hash);
+    if (!ok) throw new HttpError(400, 'A senha atual não confere');
+    queries.updatePassword.run(await bcrypt.hash(data.next, 10), me.id);
+    res.json({ ok: true });
+  }),
+);
+
 authRouter.get('/me', requireAuth, (_req, res) => {
   const row = queries.userById.get(currentUser(res).id)!;
   res.json({ user: toSelfUser(row) });

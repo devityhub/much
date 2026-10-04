@@ -527,9 +527,11 @@ function DesktopSection() {
 }
 
 function AccountSection() {
-  const { user, logout, updateProfile } = useAuth();
+  const { user, logout, updateProfile, changePassword } = useAuth();
   const { openSettings } = useUi();
   const toast = useToast();
+  const [pw, setPw] = useState({ current: '', next: '', confirm: '' });
+  const [pwBusy, setPwBusy] = useState(false);
   if (!user) return null;
   const smallButton = 'rounded-lg bg-surface-4 px-3 py-1.5 text-sm font-semibold hover:bg-surface-5';
   const rows: Array<{ label: string; value: string; action: ReactNode }> = [
@@ -600,6 +602,61 @@ function AccountSection() {
         </div>
       </div>
       <p className="text-sm text-muted">Seu nick é como seus amigos te encontram e não pode ser alterado.</p>
+
+      <Card>
+        <p className="mb-3 text-sm font-semibold">Trocar senha</p>
+        <form
+          className="space-y-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (pw.next !== pw.confirm) {
+              toast('As senhas novas não conferem', 'error');
+              return;
+            }
+            setPwBusy(true);
+            void changePassword(pw.current, pw.next)
+              .then(() => {
+                toast('Senha atualizada', 'success');
+                setPw({ current: '', next: '', confirm: '' });
+              })
+              .catch((err: Error) => toast(err.message, 'error'))
+              .finally(() => setPwBusy(false));
+          }}
+        >
+          <input
+            className="input"
+            type="password"
+            autoComplete="current-password"
+            placeholder="Senha atual"
+            value={pw.current}
+            onChange={(e) => setPw({ ...pw, current: e.target.value })}
+            required
+          />
+          <input
+            className="input"
+            type="password"
+            autoComplete="new-password"
+            placeholder="Senha nova"
+            value={pw.next}
+            onChange={(e) => setPw({ ...pw, next: e.target.value })}
+            required
+            minLength={6}
+          />
+          <input
+            className="input"
+            type="password"
+            autoComplete="new-password"
+            placeholder="Repita a senha nova"
+            value={pw.confirm}
+            onChange={(e) => setPw({ ...pw, confirm: e.target.value })}
+            required
+            minLength={6}
+          />
+          <Button type="submit" disabled={pwBusy || !pw.current || !pw.next}>
+            {pwBusy ? 'Salvando...' : 'Salvar senha'}
+          </Button>
+        </form>
+      </Card>
 
       <Button variant="danger" onClick={logout}>
         <LogOut size={16} /> Sair da conta

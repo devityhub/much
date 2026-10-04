@@ -281,6 +281,7 @@ export const queries = {
   insertUser: db.prepare<[string, string, string, string]>(
     'INSERT INTO users (nick, email, password_hash, avatar) VALUES (?, ?, ?, ?)',
   ),
+  updatePassword: db.prepare<[string, number]>('UPDATE users SET password_hash = ? WHERE id = ?'),
   updateProfile: db.prepare<
     [string, string | null, string, string, string, string, Presence, string | null, string | null, number]
   >(`
